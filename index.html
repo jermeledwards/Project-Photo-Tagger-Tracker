@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Photo Tagger</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Photo Tagger">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📷</text></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f3f4f6;
+    color: #1f2937;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  header {
+    background: #1e40af;
+    color: white;
+    padding: 16px 20px;
+    padding-top: calc(16px + env(safe-area-inset-top));
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  header h1 { font-size: 20px; margin: 0; flex: 1; }
+  .back-btn {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: white;
+    font-size: 20px;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .back-btn.show { display: flex; }
+  .tabs {
+    display: flex;
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    z-index: 9;
+  }
+  .tab {
+    flex: 1;
+    padding: 14px;
+    text-align: center;
+    border: none;
+    background: none;
+    font-size: 15px;
+    font-weight: 600;
+    color: #6b7280;
+    border-bottom: 3px solid transparent;
+  }
+  .tab.active { color: #1e40af; border-bottom-color: #1e40af; }
+  main { padding: 16px; max-width: 700px; margin: 0 auto; }
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .card h2 { margin: 0 0 4px; font-size: 17px; }
+  .card .subhint { font-size: 12px; color: #9ca3af; margin: 0 0 14px; }
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+  .btn-primary { background: #2563eb; color: white; }
+  .btn-secondary { background: #4b5563; color: white; }
+  .btn-danger { background: #dc2626; color: white; }
+  .btn-success { background: #16a34a; color: white; }
+  .btn-outline { background: #eef2ff; color: #2563eb; }
+  .btn:disabled { background: #d1d5db; color: #9ca3af; cursor: not-allowed; }
+  input[type="text"], textarea, select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 15px;
+    margin-bottom: 4px;
+    font-family: inherit;
+    background: white;
+  }
+  label.field-label { font-size: 13px; font-weight: 600; color: #374151; display: block; margin-bottom: 6px; margin-top: 12px; }
+  .hint { font-size: 12px; color: #9ca3af; margin: 4px 0 0; }
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f9fafb;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 10px;
+  }
+  .checkbox-row input { width: 20px; height: 20px; }
+  .checkbox-row span { font-weight: 500; }
+
+  .gps-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: #eff6ff;
+    color: #1e40af;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 12px;
+  }
+  .gps-status button {
+    background: none;
+    border: none;
+    color: #2563eb;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 8px;
+  }
+  .gps-status.error { background: #fef2f2; color: #b91c1c; }
+
+  .thumb-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .thumb-wrap {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f3f4f6;
+  }
+  .thumb-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .thumb-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(0,0,0,0.65);
+    color: white;
+    border: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 13px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .thumb-count-badge {
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    background: rgba(37,99,235,0.9);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+  }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: #6b7280; }
+  .search-grid { display: flex; flex-direction: column; gap: 10px; }
+  .action-row { display: flex; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid #e5e7eb; }
+  .action-row .btn { margin-bottom: 0; }
+
+  .point-card { background: white; border-radius: 12px; overflow: hidden; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .point-photos {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    background: #e5e7eb;
+  }
+  .point-photos.single { grid-template-columns: 1fr; }
+  .point-photos img { width: 100%; height: 120px; object-fit: cover; display: block; }
+  .point-photos.single img { height: 220px; }
+  .point-photos .more-overlay { position: relative; }
+  .point-photos .more-overlay::after {
+    content: attr(data-count);
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .photo-info { padding: 14px; }
+  .project-badge { display: inline-block; background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .photo-count-label { font-size: 12px; color: #6b7280; font-weight: 600; margin-left: 6px; }
+  .tag-badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; margin-right: 6px; margin-bottom: 6px; }
+  .tag-traffic { background: #fed7aa; color: #9a3412; }
+  .tag-hydro { background: #e9d5ff; color: #6b21a8; }
+  .tag-access { background: #bbf7d0; color: #14532d; }
+  .gps-badge { background: #dbeafe; color: #1e40af; }
+  .notes-text { font-size: 13px; color: #4b5563; margin: 6px 0; }
+  .timestamp { font-size: 11px; color: #9ca3af; margin-bottom: 10px; }
+  .card-actions { display: flex; gap: 8px; }
+  .card-actions button { flex: 1; padding: 9px; border-radius: 6px; border: none; font-size: 12px; font-weight: 600; }
+  .act-dl { background: #eff6ff; color: #2563eb; }
+  .act-del { background: #fef2f2; color: #dc2626; }
+  input[type="file"] { display: none; }
+  .storage-warning { background: #fef9c3; color: #854d0e; padding: 10px 14px; border-radius: 8px; font-size: 12px; margin-bottom: 16px; }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%) translateY(20px);
+    background: #111827;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: calc(100% - 40px);
+    text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast .toast-thumb { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
+
+  @keyframes flashHighlight {
+    0% { box-shadow: 0 0 0 3px #16a34a; }
+    100% { box-shadow: 0 0 0 3px rgba(22,163,74,0); }
+  }
+  .point-card.just-saved { animation: flashHighlight 1.8s ease-out; }
+
+  .load-more-btn { background: white; color: #2563eb; border: 1px dashed #93c5fd; }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="back-btn" id="backBtn" onclick="history.back()">←</button>
+  <h1 id="pageTitle">Photo Tagger</h1>
+</header>
+
+<div class="toast" id="toast"></div>
+
+<div class="tabs">
+  <button class="tab active" id="tabCapture" onclick="goTo('capture')">Capture & Tag</button>
+  <button class="tab" id="tabGallery" onclick="goTo('gallery')">Gallery (<span id="photoCount">0</span>)</button>
+</div>
+
+<main>
+
+  <div id="storageWarning" class="storage-warning" style="display:none;"></div>
+
+  <!-- CAPTURE VIEW -->
+  <div id="view-capture">
+    <div class="card">
+      <h2>Photos for this Point</h2>
+      <p class="subhint">Take as many as you need, then tag them all at once below</p>
+
+      <div class="thumb-grid" id="thumbGrid"></div>
+
+      <button class="btn btn-primary" onclick="document.getElementById('cameraInput').click()">📷 Take Photo</button>
+      <input type="file" id="cameraInput" accept="image/*" capture="environment">
+      <button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">📁 Upload Photo(s)</button>
+      <input type="file" id="fileInput" accept="image/*" multiple>
+
+      <div class="gps-status" id="gpsStatus">
+        <span id="gpsStatusText">📍 No location captured yet</span>
+        <button onclick="requestLocation(true)">Update</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Add Tags</h2>
+      <p class="subhint">Applied to all photos above, and stamped directly onto each photo when exported</p>
+      <label class="field-label" style="margin-top:0;">Project ID (Point / Pole Name)</label>
+      <input type="text" id="projectId" placeholder="e.g., P-01, WO-123, Circuit-A">
+      <p class="hint">Photos are organized by this ID</p>
+
+      <div class="checkbox-row">
+        <input type="checkbox" id="trafficControl">
+        <span>Traffic Control Required</span>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="hydrovac">
+        <span>Hydrovac Needed</span>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="accessibilityIssue">
+        <span>Accessibility Issue</span>
+      </div>
+
+      <label class="field-label">Additional Notes</label>
+      <textarea id="notes" rows="3" placeholder="Pole condition, equipment details, etc."></textarea>
+
+      <button class="btn btn-success" id="saveBtn" style="margin-top:14px;" onclick="savePoint()" disabled>💾 Save Point & Tags</button>
+      <button class="btn btn-danger" id="clearAllBtn" onclick="clearStaged()" style="display:none;">Clear All Photos</button>
+    </div>
+  </div>
+
+  <!-- GALLERY VIEW -->
+  <div id="view-gallery" style="display:none;">
+    <div class="card">
+      <div class="search-grid">
+        <div>
+          <label class="field-label" style="margin-top:0;">Search by Project ID</label>
+          <input type="text" id="searchProject" placeholder="e.g., P-01, WO-123" oninput="onSearchChange()">
+        </div>
+        <div>
+          <label class="field-label">Search by Tags/Notes</label>
+          <input type="text" id="searchTerm" placeholder="Search or type: traffic control, hydrovac, accessibility issue" oninput="onSearchChange()">
+        </div>
+        <div>
+          <label class="field-label">Export Format</label>
+          <select id="exportFormat">
+            <option value="jpeg">JPEG (photo + tags stamped on)</option>
+            <option value="png">PNG (photo + tags stamped on)</option>
+            <option value="pdf">PDF (one combined file)</option>
+          </select>
+        </div>
+      </div>
+      <div class="action-row">
+        <button class="btn btn-primary" id="exportShownBtn" onclick="exportPoints(getFilteredPoints(), document.getElementById('exportFormat').value)">⬇ Export Shown</button>
+        <button class="btn btn-secondary" id="exportAllBtn" onclick="exportAllFromDB()" style="display:none;">⬇ Export All</button>
+      </div>
+    </div>
+
+    <div id="galleryList"></div>
+    <button class="btn load-more-btn" id="loadMoreBtn" onclick="loadMoreResults()" style="display:none;">Load More</button>
+  </div>
+
+</main>
+
+<script>
+window.addEventListener('error', (e) => {
+  console.error('App error:', e.error || e.message);
+  const banner = document.createElement('div');
+  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#dc2626;color:white;padding:12px 16px;font-size:13px;font-weight:600;z-index:999;';
+  banner.textContent = 'App error: ' + (e.message || 'something went wrong') + ' — reload the page and try again.';
+  document.body.prepend(banner);
+});
+
+// =========================================================================
+// STORAGE — IndexedDB
+// localStorage caps out around 5-10MB total, which cannot hold anywhere
+// near 1000 photos. IndexedDB has a far larger quota (typically hundreds of
+// MB to several GB depending on device) and stores each point as its own
+// record instead of one giant blob, so saves stay fast even at scale.
+// =========================================================================
+const DB_NAME = 'photoTaggerDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'points';
+const OLD_LOCALSTORAGE_KEY_V2 = 'photoTaggerPoints_v2';
+const OLD_LOCALSTORAGE_KEY_V1 = 'photoTaggerPhotos_v1';
+const DRAFT_KEY = 'photoTaggerDraft_v3';
+
+let dbPromise = null;
+function openDB() {
+  if (dbPromise) return dbPromise;
+  dbPromise = new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+  return dbPromise;
+}
+
+async function dbGetAll() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const req = tx.objectStore(STORE_NAME).getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function dbPut(point) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    tx.objectStore(STORE_NAME).put(point);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function dbDelete(id) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    tx.objectStore(STORE_NAME).delete(id);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function dbCount() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const req = tx.objectStore(STORE_NAME).count();
+    req.onsuccess = () => resolve(req.result || 0);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+// One-time migration from the older localStorage-based versions of this app
+async function migrateFromLocalStorageIfNeeded() {
+  try {
+    const rawV2 = localStorage.getItem(OLD_LOCALSTORAGE_KEY_V2);
+    if (rawV2) {
+      const oldPoints = JSON.parse(rawV2);
+      for (const p of oldPoints) {
+        await dbPut({ gps: null, accessibilityIssue: false, ...p });
+      }
+      localStorage.removeItem(OLD_LOCALSTORAGE_KEY_V2);
+    }
+  } catch (e) { console.error('v2 migration failed', e); }
+
+  try {
+    const rawV1 = localStorage.getItem(OLD_LOCALSTORAGE_KEY_V1);
+    if (rawV1) {
+      const legacy = JSON.parse(rawV1);
+      for (const p of legacy) {
+        await dbPut({
+          id: p.id,
+          projectId: p.projectId,
+          images: [p.imageData],
+          trafficControl: !!p.trafficControl,
+          hydrovac: !!p.hydrovac,
+          accessibilityIssue: false,
+          gps: null,
+          notes: p.notes || '',
+          timestamp: p.timestamp
+        });
+      }
+      localStorage.removeItem(OLD_LOCALSTORAGE_KEY_V1);
+    }
+  } catch (e) { console.error('v1 migration failed', e); }
+}
+
+function saveDraft() {
+  const draft = {
+    projectId: document.getElementById('projectId').value,
+    trafficControl: document.getElementById('trafficControl').checked,
+    hydrovac: document.getElementById('hydrovac').checked,
+    accessibilityIssue: document.getElementById('accessibilityIssue').checked,
+    notes: document.getElementById('notes').value,
+    stagedImages: stagedImages,
+    stagedGps: stagedGps
+  };
+  const hasContent = draft.projectId || draft.notes || draft.trafficControl || draft.hydrovac || draft.accessibilityIssue || stagedImages.length > 0;
+  if (hasContent) {
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); } catch (e) { /* quota errors on draft are non-fatal */ }
+  } else {
+    localStorage.removeItem(DRAFT_KEY);
+  }
+}
+
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return;
+    const draft = JSON.parse(raw);
+    document.getElementById('projectId').value = draft.projectId || '';
+    document.getElementById('trafficControl').checked = !!draft.trafficControl;
+    document.getElementById('hydrovac').checked = !!draft.hydrovac;
+    document.getElementById('accessibilityIssue').checked = !!draft.accessibilityIssue;
+    document.getElementById('notes').value = draft.notes || '';
+    stagedImages = draft.stagedImages || [];
+    stagedGps = draft.stagedGps || null;
+    renderThumbs();
+    updateGpsStatus();
+    updateSaveBtn();
+  } catch (e) { /* ignore */ }
+}
+
+function clearDraft() {
+  localStorage.removeItem(DRAFT_KEY);
+}
+
+// =========================================================================
+// STATE
+// =========================================================================
+let points = [];           // in-memory cache of all points, newest first
+let stagedImages = [];     // data URLs for the point currently being tagged
+let stagedGps = null;      // { lat, lng, accuracy } for the point currently being tagged
+let lastSavedPointId = null;
+const GALLERY_PAGE_SIZE = 30;
+let galleryRenderLimit = GALLERY_PAGE_SIZE;
+
+// =========================================================================
+// NAVIGATION (back button support)
+// =========================================================================
+function safeHistory(method, state, url) {
+  try { history[method](state, '', url); }
+  catch (e) { console.warn('History API unavailable (expected on some file:// pages):', e); }
+}
+
+function goTo(view, pushState = true) {
+  document.getElementById('view-capture').style.display = view === 'capture' ? 'block' : 'none';
+  document.getElementById('view-gallery').style.display = view === 'gallery' ? 'block' : 'none';
+  document.getElementById('tabCapture').classList.toggle('active', view === 'capture');
+  document.getElementById('tabGallery').classList.toggle('active', view === 'gallery');
+  document.getElementById('pageTitle').textContent = view === 'capture' ? 'Photo Tagger' : 'Gallery';
+  document.getElementById('backBtn').classList.toggle('show', view === 'gallery');
+  if (view === 'gallery') renderGallery();
+  if (pushState) safeHistory('pushState', { view }, '#' + view);
+}
+
+window.addEventListener('popstate', (e) => {
+  const view = (e.state && e.state.view) || 'capture';
+  goTo(view, false);
+});
+
+safeHistory('replaceState', { view: 'capture' }, '#capture');
+
+// =========================================================================
+// TOAST NOTIFICATIONS
+// =========================================================================
+let toastTimer = null;
+function showToast(message, thumbUrl, sticky) {
+  const toast = document.getElementById('toast');
+  toast.innerHTML = (thumbUrl ? `<img class="toast-thumb" src="${thumbUrl}">` : '') + `<span>${message}</span>`;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  if (!sticky) toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+}
+function hideToast() {
+  document.getElementById('toast').classList.remove('show');
+}
+
+// =========================================================================
+// GPS CAPTURE
+// =========================================================================
+function requestLocation(manual) {
+  const statusEl = document.getElementById('gpsStatus');
+  const textEl = document.getElementById('gpsStatusText');
+  if (!('geolocation' in navigator)) {
+    statusEl.classList.add('error');
+    textEl.textContent = '📍 Location not supported on this device';
+    return;
+  }
+  statusEl.classList.remove('error');
+  textEl.textContent = '📍 Getting location…';
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      stagedGps = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        accuracy: pos.coords.accuracy
+      };
+      updateGpsStatus();
+      saveDraft();
+    },
+    (err) => {
+      statusEl.classList.add('error');
+      let msg = 'Location unavailable';
+      if (err.code === 1) msg = 'Location permission denied — enable it in Settings to tag GPS';
+      else if (err.code === 2) msg = 'Location unavailable right now';
+      else if (err.code === 3) msg = 'Location request timed out';
+      textEl.textContent = '📍 ' + msg;
+      if (manual) showToast(msg);
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+  );
+}
+
+function updateGpsStatus() {
+  const statusEl = document.getElementById('gpsStatus');
+  const textEl = document.getElementById('gpsStatusText');
+  if (stagedGps) {
+    statusEl.classList.remove('error');
+    textEl.textContent = `📍 ${stagedGps.lat.toFixed(6)}, ${stagedGps.lng.toFixed(6)} (±${Math.round(stagedGps.accuracy)}m)`;
+  } else {
+    textEl.textContent = '📍 No location captured yet';
+  }
+}
+
+// =========================================================================
+// CAPTURE LOGIC
+// =========================================================================
+document.getElementById('cameraInput').addEventListener('change', handleFiles);
+document.getElementById('fileInput').addEventListener('change', handleFiles);
+
+// Photos are resized/re-compressed before storing. Full-size phone camera
+// photos (3-8MB each) would make 1000-photo storage impractical; this keeps
+// each photo small while still readable for field documentation.
+function compressImage(file, maxDimension = 1280, quality = 0.65) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Could not read image'));
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > height && width > maxDimension) {
+          height = Math.round(height * (maxDimension / width));
+          width = maxDimension;
+        } else if (height > maxDimension) {
+          width = Math.round(width * (maxDimension / height));
+          height = maxDimension;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleFiles(e) {
+  const files = Array.from(e.target.files || []);
+  if (files.length === 0) return;
+  e.target.value = '';
+
+  const wasEmpty = stagedImages.length === 0;
+  if (wasEmpty && !stagedGps) requestLocation(false);
+
+  for (const file of files) {
+    try {
+      const compressed = await compressImage(file);
+      stagedImages.push(compressed);
+      renderThumbs();
+      updateSaveBtn();
+      saveDraft();
+      showToast(`Photo added (${stagedImages.length} total)`, compressed);
+    } catch (err) {
+      console.error('Image processing failed', err);
+      alert('One of the photos could not be processed. Please try again.');
+    }
+  }
+}
+
+function renderThumbs() {
+  const grid = document.getElementById('thumbGrid');
+  document.getElementById('clearAllBtn').style.display = stagedImages.length > 0 ? 'block' : 'none';
+  if (stagedImages.length === 0) {
+    grid.innerHTML = '';
+    return;
+  }
+  grid.innerHTML = stagedImages.map((img, i) => `
+    <div class="thumb-wrap">
+      <img src="${img}" alt="photo ${i + 1}">
+      <button class="thumb-remove" onclick="removeStaged(${i})">✕</button>
+      <span class="thumb-count-badge">${i + 1}</span>
+    </div>
+  `).join('');
+}
+
+function removeStaged(index) {
+  stagedImages.splice(index, 1);
+  renderThumbs();
+  updateSaveBtn();
+  saveDraft();
+}
+
+function clearStaged() {
+  if (stagedImages.length > 0 && !confirm('Remove all photos from this point?')) return;
+  stagedImages = [];
+  stagedGps = null;
+  renderThumbs();
+  updateGpsStatus();
+  updateSaveBtn();
+  saveDraft();
+}
+
+function updateSaveBtn() {
+  const pid = document.getElementById('projectId').value.trim();
+  document.getElementById('saveBtn').disabled = !(stagedImages.length > 0 && pid);
+}
+
+['projectId', 'notes'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => { updateSaveBtn(); saveDraft(); });
+});
+['trafficControl', 'hydrovac', 'accessibilityIssue'].forEach(id => {
+  document.getElementById(id).addEventListener('change', saveDraft);
+});
+
+async function savePoint() {
+  const projectId = document.getElementById('projectId').value.trim();
+  if (stagedImages.length === 0 || !projectId) {
+    alert('Please add at least one photo and enter a project ID');
+    return;
+  }
+  const newPoint = {
+    id: Date.now(),
+    projectId,
+    images: stagedImages.slice(),
+    trafficControl: document.getElementById('trafficControl').checked,
+    hydrovac: document.getElementById('hydrovac').checked,
+    accessibilityIssue: document.getElementById('accessibilityIssue').checked,
+    gps: stagedGps,
+    notes: document.getElementById('notes').value,
+    timestamp: new Date().toLocaleString()
+  };
+
+  try {
+    await dbPut(newPoint);
+  } catch (e) {
+    console.error('Save failed', e);
+    alert(
+      'This point could not be saved — device storage is full.\n\n' +
+      'Go to the Gallery tab, export your existing points (PDF is most compact), then delete a few older ones to free up space.'
+    );
+    return;
+  }
+
+  points = [newPoint, ...points];
+  clearDraft();
+
+  stagedImages = [];
+  stagedGps = null;
+  document.getElementById('projectId').value = '';
+  document.getElementById('trafficControl').checked = false;
+  document.getElementById('hydrovac').checked = false;
+  document.getElementById('accessibilityIssue').checked = false;
+  document.getElementById('notes').value = '';
+  renderThumbs();
+  updateGpsStatus();
+  updateSaveBtn();
+  updatePointCount();
+
+  lastSavedPointId = newPoint.id;
+  document.getElementById('searchProject').value = '';
+  document.getElementById('searchTerm').value = '';
+  galleryRenderLimit = GALLERY_PAGE_SIZE;
+  goTo('gallery');
+  showToast(`Saved ${newPoint.images.length} photo(s) to ${newPoint.projectId}`, newPoint.images[0]);
+}
+
+// =========================================================================
+// IMAGE TAGGING (bakes checked tags, GPS, notes onto the photo itself)
+// =========================================================================
+function loadImageEl(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('Could not load image'));
+    img.src = src;
+  });
+}
+
+function truncate(str, max) {
+  if (!str) return '';
+  return str.length > max ? str.slice(0, max - 1) + '…' : str;
+}
+
+function buildCaptionLines(point) {
+  const lines = [];
+  lines.push(point.projectId);
+  lines.push(
+    `Traffic Control: ${point.trafficControl ? 'Yes' : 'No'}   ` +
+    `Hydrovac: ${point.hydrovac ? 'Yes' : 'No'}   ` +
+    `Accessibility Issue: ${point.accessibilityIssue ? 'Yes' : 'No'}`
+  );
+  let bottomLine = point.timestamp;
+  if (point.gps) bottomLine += `   GPS: ${point.gps.lat.toFixed(6)}, ${point.gps.lng.toFixed(6)}`;
+  lines.push(bottomLine);
+  if (point.notes) lines.push(`Notes: ${truncate(point.notes, 100)}`);
+  return lines;
+}
+
+// Draws the photo plus a caption band underneath onto a canvas, returning
+// the canvas (caller decides final export format/quality).
+async function drawTaggedCanvas(imgSrc, point) {
+  const img = await loadImageEl(imgSrc);
+  const lines = buildCaptionLines(point);
+  const padding = Math.max(12, img.width * 0.02);
+  const baseFontSize = Math.max(13, Math.round(img.width * 0.028));
+  const lineHeight = Math.round(baseFontSize * 1.5);
+  const captionHeight = padding * 2 + lines.length * lineHeight;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width;
+  canvas.height = img.height + captionHeight;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(img, 0, 0);
+
+  ctx.fillStyle = '#f3f4f6';
+  ctx.fillRect(0, img.height, canvas.width, captionHeight);
+  ctx.strokeStyle = '#d1d5db';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, img.height);
+  ctx.lineTo(canvas.width, img.height);
+  ctx.stroke();
+
+  let y = img.height + padding + baseFontSize * 0.85;
+  lines.forEach((line, i) => {
+    ctx.fillStyle = '#111827';
+    ctx.font = i === 0 ? `bold ${baseFontSize + 2}px sans-serif` : `${baseFontSize}px sans-serif`;
+    ctx.fillText(line, padding, y);
+    y += lineHeight;
+  });
+
+  return canvas;
+}
+
+async function getTaggedImageDataUrl(imgSrc, point, format) {
+  const canvas = await drawTaggedCanvas(imgSrc, point);
+  if (format === 'png') return canvas.toDataURL('image/png');
+  return canvas.toDataURL('image/jpeg', 0.85);
+}
+
+// =========================================================================
+// GALLERY (paginated rendering keeps things responsive at large photo counts)
+// =========================================================================
+function updatePointCount() {
+  const totalPhotos = points.reduce((sum, p) => sum + p.images.length, 0);
+  document.getElementById('photoCount').textContent = totalPhotos;
+}
+
+function matchesSearch(p, searchProject, searchTerm) {
+  const matchesProject = !searchProject || p.projectId.toLowerCase().includes(searchProject);
+  let matchesTerm = true;
+  if (searchTerm) {
+    if (searchTerm === 'traffic control') matchesTerm = p.trafficControl;
+    else if (searchTerm === 'hydrovac') matchesTerm = p.hydrovac;
+    else if (searchTerm === 'accessibility issue' || searchTerm === 'accessibility') matchesTerm = p.accessibilityIssue;
+    else matchesTerm = (p.notes || '').toLowerCase().includes(searchTerm);
+  }
+  return matchesProject && matchesTerm;
+}
+
+function getFilteredPoints() {
+  const searchProject = document.getElementById('searchProject').value.toLowerCase();
+  const searchTerm = document.getElementById('searchTerm').value.toLowerCase();
+  return points.filter(p => matchesSearch(p, searchProject, searchTerm));
+}
+
+function onSearchChange() {
+  galleryRenderLimit = GALLERY_PAGE_SIZE;
+  renderGallery();
+}
+
+function loadMoreResults() {
+  galleryRenderLimit += GALLERY_PAGE_SIZE;
+  renderGallery();
+}
+
+function renderGallery() {
+  const filtered = getFilteredPoints();
+
+  const exportShownBtn = document.getElementById('exportShownBtn');
+  const exportAllBtn = document.getElementById('exportAllBtn');
+  const shownPhotoCount = filtered.reduce((sum, p) => sum + p.images.length, 0);
+  exportShownBtn.textContent = `⬇ Export Shown (${shownPhotoCount})`;
+  exportShownBtn.disabled = filtered.length === 0;
+  if (filtered.length !== points.length) {
+    const allPhotoCount = points.reduce((sum, p) => sum + p.images.length, 0);
+    exportAllBtn.style.display = 'block';
+    exportAllBtn.textContent = `⬇ Export All (${allPhotoCount})`;
+  } else {
+    exportAllBtn.style.display = 'none';
+  }
+
+  const list = document.getElementById('galleryList');
+  const loadMoreBtn = document.getElementById('loadMoreBtn');
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="card empty-state">${points.length === 0 ? 'No points yet. Capture your first photos!' : 'No points match your search.'}</div>`;
+    loadMoreBtn.style.display = 'none';
+    return;
+  }
+
+  const visible = filtered.slice(0, galleryRenderLimit);
+
+  list.innerHTML = visible.map(p => {
+    const imgs = p.images || [];
+    const showCount = Math.min(imgs.length, 3);
+    const gridClass = imgs.length === 1 ? 'point-photos single' : 'point-photos';
+    let photosHtml = '';
+    for (let i = 0; i < showCount; i++) {
+      const isLastTile = i === 2 && imgs.length > 3;
+      photosHtml += isLastTile
+        ? `<div class="more-overlay" data-count="+${imgs.length - 2}"><img src="${imgs[i]}" alt=""></div>`
+        : `<img src="${imgs[i]}" alt="">`;
+    }
+    return `
+    <div class="point-card${p.id === lastSavedPointId ? ' just-saved' : ''}" id="point-${p.id}">
+      <div class="${gridClass}">${photosHtml}</div>
+      <div class="photo-info">
+        <span class="project-badge">${escapeHtml(p.projectId)}</span>
+        <span class="photo-count-label">${imgs.length} photo${imgs.length !== 1 ? 's' : ''}</span>
+        <div>
+          ${p.trafficControl ? '<span class="tag-badge tag-traffic">✓ Traffic Control</span>' : ''}
+          ${p.hydrovac ? '<span class="tag-badge tag-hydro">✓ Hydrovac</span>' : ''}
+          ${p.accessibilityIssue ? '<span class="tag-badge tag-access">✓ Accessibility Issue</span>' : ''}
+          ${p.gps ? `<span class="tag-badge gps-badge">📍 ${p.gps.lat.toFixed(5)}, ${p.gps.lng.toFixed(5)}</span>` : ''}
+        </div>
+        ${p.notes ? `<p class="notes-text">${escapeHtml(p.notes)}</p>` : ''}
+        <p class="timestamp">${p.timestamp}</p>
+        <div class="card-actions">
+          <button class="act-dl" onclick="exportPoints([points.find(pt=>pt.id===${p.id})], document.getElementById('exportFormat').value)">Export</button>
+          <button class="act-del" onclick="deleteOne(${p.id})">Delete</button>
+        </div>
+      </div>
+    </div>
+  `;
+  }).join('');
+
+  loadMoreBtn.style.display = filtered.length > visible.length ? 'block' : 'none';
+  if (loadMoreBtn.style.display === 'block') {
+    loadMoreBtn.textContent = `Load More (${filtered.length - visible.length} remaining)`;
+  }
+
+  if (lastSavedPointId !== null) {
+    const el = document.getElementById('point-' + lastSavedPointId);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    lastSavedPointId = null;
+  }
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// =========================================================================
+// EXPORT — JPEG / PNG (tagged, individual files) or PDF (one combined file)
+// =========================================================================
+function sanitizeFolderName(name) {
+  return (name || 'Unlabeled').trim().replace(/[\/\\?%*:|"<>]/g, '-');
+}
+
+async function exportPoints(list, format) {
+  list = list.filter(Boolean);
+  const totalPhotos = list.reduce((sum, p) => sum + p.images.length, 0);
+  if (totalPhotos === 0) { alert('No photos to export'); return; }
+
+  if (format === 'pdf') {
+    await exportAsPdf(list, totalPhotos);
+    return;
+  }
+
+  // A single photo can just download directly — no need to zip one file.
+  if (totalPhotos === 1) {
+    const p = list.find(pt => pt.images.length > 0);
+    if (!confirm(`Export this photo as a tagged ${format.toUpperCase()}?`)) return;
+    try {
+      const dataUrl = await getTaggedImageDataUrl(p.images[0], p, format);
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `${p.projectId}_${p.id}_1.${format === 'png' ? 'png' : 'jpg'}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Export complete');
+    } catch (err) {
+      console.error('Export failed', err);
+      alert('That photo could not be exported. Please try again.');
+    }
+    return;
+  }
+
+  // Multiple photos are bundled into a single .zip file. Mobile Safari
+  // silently blocks every download after the first one when a script
+  // triggers several downloads in a row, so looping individual downloads
+  // was only ever saving photo #1 — a single zip download sidesteps that.
+  if (!window.JSZip) {
+    alert('The zip library did not load. Check your internet connection (it only needs to load once) and try again.');
+    return;
+  }
+  if (!confirm(`Export ${totalPhotos} photo(s) as tagged ${format.toUpperCase()} files, bundled into one .zip download?`)) return;
+
+  const zip = new JSZip();
+  let count = 0;
+  showToast(`Preparing export... 0/${totalPhotos}`, null, true);
+  for (const p of list) {
+    for (let i = 0; i < p.images.length; i++) {
+      try {
+        const dataUrl = await getTaggedImageDataUrl(p.images[i], p, format);
+        const base64 = dataUrl.split(',')[1];
+        const filename = `${p.projectId}_${p.id}_${i + 1}.${format === 'png' ? 'png' : 'jpg'}`;
+        const folder = sanitizeFolderName(p.projectId);
+        zip.file(`${folder}/${filename}`, base64, { base64: true });
+      } catch (err) {
+        console.error('Export failed for one photo', err);
+      }
+      count++;
+      if (count % 5 === 0 || count === totalPhotos) {
+        showToast(`Preparing export... ${count}/${totalPhotos}`, null, true);
+        await new Promise(r => setTimeout(r, 0)); // yield to keep UI responsive
+      }
+    }
+  }
+
+  showToast('Compressing zip file…', null, true);
+  try {
+    const blob = await zip.generateAsync({ type: 'blob' }, (metadata) => {
+      if (Math.round(metadata.percent) % 10 === 0) {
+        showToast(`Compressing zip file... ${Math.round(metadata.percent)}%`, null, true);
+      }
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `photo-tagger-export-${Date.now()}.zip`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    hideToast();
+    showToast(`Export complete — ${count} photo(s) in one .zip`);
+  } catch (err) {
+    console.error('Zip generation failed', err);
+    hideToast();
+    alert('The zip file could not be built — this can happen with very large batches on limited device memory. Try exporting a smaller batch, or use PDF format instead.');
+  }
+}
+
+async function exportAsPdf(list, totalPhotos) {
+  if (!window.jspdf) {
+    alert('The PDF library did not load. Check your internet connection (it only needs to load once) and try again.');
+    return;
+  }
+  if (!confirm(`Build one PDF containing ${totalPhotos} tagged photo(s)? Large batches can take a few minutes on a phone — keep this tab open until it finishes.`)) return;
+
+  showToast(`Building PDF... 0/${totalPhotos}`, null, true);
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 24;
+
+  let count = 0;
+  let firstPage = true;
+  for (const p of list) {
+    for (let i = 0; i < p.images.length; i++) {
+      try {
+        const canvas = await drawTaggedCanvas(p.images[i], p);
+        const imgData = canvas.toDataURL('image/jpeg', 0.8);
+        const ratio = Math.min((pageW - margin * 2) / canvas.width, (pageH - margin * 2) / canvas.height);
+        const w = canvas.width * ratio;
+        const h = canvas.height * ratio;
+        if (!firstPage) doc.addPage();
+        firstPage = false;
+        doc.addImage(imgData, 'JPEG', (pageW - w) / 2, (pageH - h) / 2, w, h);
+      } catch (err) {
+        console.error('PDF page failed for one photo', err);
+      }
+      count++;
+      if (count % 5 === 0 || count === totalPhotos) {
+        showToast(`Building PDF... ${count}/${totalPhotos}`, null, true);
+        await new Promise(r => setTimeout(r, 0)); // yield to keep UI responsive
+      }
+    }
+  }
+  hideToast();
+  showToast('Saving PDF…', null, true);
+  doc.save(`photo-tagger-export-${Date.now()}.pdf`);
+  await new Promise(r => setTimeout(r, 500));
+  hideToast();
+  showToast(`PDF ready — ${count} photo(s)`);
+}
+
+async function exportAllFromDB() {
+  const format = document.getElementById('exportFormat').value;
+  await exportPoints(points, format);
+}
+
+async function deleteOne(id) {
+  if (!confirm('Delete this point and all its photos?')) return;
+  try {
+    await dbDelete(id);
+  } catch (e) {
+    console.error('Delete failed', e);
+    alert('Could not delete this point. Please try again.');
+    return;
+  }
+  points = points.filter(p => p.id !== id);
+  updatePointCount();
+  renderGallery();
+}
+
+// =========================================================================
+// STARTUP CHECKS
+// =========================================================================
+function localStorageIsWorking() {
+  try {
+    localStorage.setItem('__storage_test__', '1');
+    localStorage.removeItem('__storage_test__');
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function checkStorageEstimate() {
+  try {
+    if (navigator.storage && navigator.storage.estimate) {
+      const { usage, quota } = await navigator.storage.estimate();
+      const warningEl = document.getElementById('storageWarning');
+      if (quota && usage / quota > 0.85) {
+        warningEl.style.display = 'block';
+        warningEl.textContent = `Device storage for this app is ${Math.round((usage / quota) * 100)}% full. Export and delete some older points to free up room.`;
+      } else {
+        warningEl.style.display = 'none';
+      }
+    }
+  } catch (e) { /* not supported on this browser, ignore */ }
+}
+
+// =========================================================================
+// INIT
+// =========================================================================
+(async function init() {
+  if (!localStorageIsWorking()) {
+    alert(
+      'Your browser is blocking local storage, so nothing can be saved on this device.\n\n' +
+      'This usually happens in Private/Incognito browsing mode. Please open this app in a normal (non-private) browser tab.'
+    );
+  }
+  if (!('indexedDB' in window)) {
+    alert('Your browser does not support the storage this app needs to save photos. Please try a different browser (Safari or Chrome).');
+    return;
+  }
+
+  try {
+    await migrateFromLocalStorageIfNeeded();
+    points = await dbGetAll();
+    points.sort((a, b) => b.id - a.id);
+  } catch (e) {
+    console.error('Failed to load saved points', e);
+    alert('There was a problem loading your saved photos. If this keeps happening, your browser storage may be corrupted.');
+  }
+
+  loadDraft();
+  updatePointCount();
+  checkStorageEstimate();
+})();
+
+window.addEventListener('beforeunload', (e) => {
+  if (stagedImages.length > 0) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+</script>
+
+</body>
+</html>
