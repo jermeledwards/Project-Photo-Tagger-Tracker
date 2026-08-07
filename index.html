@@ -1,16 +1,14 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-<title>Photo Tagger</title>
+<title>Project Photo Tracker</title>
 
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Photo Tagger">
+<meta name="apple-mobile-web-app-title" content="Photo Tracker">
 
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📷</text></svg>">
 
@@ -18,7 +16,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <style>
-
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -35,37 +32,45 @@ body {
 header {
   background: #1e40af;
   color: white;
-  padding: 16px 20px;
-  padding-top: calc(16px + env(safe-area-inset-top));
+  padding: 14px 16px;
+  padding-top: calc(14px + env(safe-area-inset-top));
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 20;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 header h1 {
-  font-size: 20px;
   margin: 0;
+  font-size: 19px;
   flex: 1;
 }
 
-.back-btn {
-  background: rgba(255,255,255,0.15);
+.header-btn {
   border: none;
+  background: rgba(255,255,255,.15);
   color: white;
-  font-size: 20px;
-  width: 36px;
-  height: 36px;
   border-radius: 8px;
-  display: none;
-  align-items: center;
-  justify-content: center;
+  min-width: 38px;
+  height: 38px;
+  padding: 0 10px;
+  font-weight: 700;
 }
 
-.back-btn.show {
-  display: flex;
+.breadcrumbs {
+  background: #eff6ff;
+  border-bottom: 1px solid #dbeafe;
+  padding: 9px 14px;
+  font-size: 12px;
+  color: #1e40af;
+  position: sticky;
+  top: 66px;
+  z-index: 15;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .tabs {
@@ -73,18 +78,17 @@ header h1 {
   background: white;
   border-bottom: 1px solid #e5e7eb;
   position: sticky;
-  top: 0;
-  z-index: 9;
+  top: 100px;
+  z-index: 14;
 }
 
 .tab {
   flex: 1;
-  padding: 14px;
-  text-align: center;
+  padding: 12px 8px;
   border: none;
-  background: none;
-  font-size: 15px;
-  font-weight: 600;
+  background: white;
+  font-size: 13px;
+  font-weight: 700;
   color: #6b7280;
   border-bottom: 3px solid transparent;
 }
@@ -95,39 +99,38 @@ header h1 {
 }
 
 main {
-  padding: 16px;
-  max-width: 700px;
+  max-width: 760px;
   margin: 0 auto;
+  padding: 14px;
 }
 
 .card {
   background: white;
   border-radius: 12px;
-  padding: 18px;
-  margin-bottom: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
 }
 
 .card h2 {
-  margin: 0 0 4px;
+  margin: 0 0 5px;
   font-size: 17px;
 }
 
-.card .subhint {
-  font-size: 12px;
+.subhint {
+  margin: 0 0 12px;
   color: #9ca3af;
-  margin: 0 0 14px;
+  font-size: 12px;
 }
 
 .btn {
   width: 100%;
-  padding: 14px;
-  border-radius: 10px;
   border: none;
-  font-size: 15px;
-  font-weight: 600;
-  margin-bottom: 10px;
-  cursor: pointer;
+  border-radius: 9px;
+  padding: 13px;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 9px;
 }
 
 .btn-primary {
@@ -140,107 +143,170 @@ main {
   color: white;
 }
 
-.btn-danger {
-  background: #dc2626;
-  color: white;
-}
-
 .btn-success {
   background: #16a34a;
   color: white;
 }
 
-.btn-outline {
-  background: #eef2ff;
-  color: #2563eb;
+.btn-danger {
+  background: #dc2626;
+  color: white;
+}
+
+.btn-light {
+  background: #f9fafb;
+  color: #374151;
+  border: 1px solid #e5e7eb;
 }
 
 .btn:disabled {
   background: #d1d5db;
   color: #9ca3af;
-  cursor: not-allowed;
 }
 
 input[type="text"],
 textarea,
 select {
   width: 100%;
-  padding: 12px;
+  padding: 11px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 15px;
-  margin-bottom: 4px;
-  font-family: inherit;
   background: white;
+  font-family: inherit;
 }
 
 label.field-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #374151;
   display: block;
-  margin-bottom: 6px;
-  margin-top: 12px;
+  margin: 12px 0 6px;
+  font-size: 13px;
+  font-weight: 700;
 }
 
-.hint {
-  font-size: 12px;
-  color: #9ca3af;
-  margin: 4px 0 0;
-}
-
-.checkbox-row {
+.inline-row {
   display: flex;
-  align-items: center;
+  gap: 9px;
+}
+
+.inline-row > * {
+  flex: 1;
+}
+
+.list-card {
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.07);
+  overflow: hidden;
+}
+
+.list-main {
+  padding: 14px;
+  display: flex;
   gap: 12px;
-  background: #f9fafb;
-  padding: 12px;
-  border-radius: 8px;
-  margin-top: 10px;
-}
-
-.checkbox-row input {
-  width: 20px;
-  height: 20px;
-}
-
-.checkbox-row span {
-  font-weight: 500;
-}
-
-.gps-status {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  background: #eff6ff;
-  color: #1e40af;
-  padding: 10px 12px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  margin-top: 12px;
 }
 
-.gps-status button {
-  background: none;
+.list-main button {
   border: none;
-  color: #2563eb;
+  background: none;
+  padding: 0;
+  text-align: left;
+  flex: 1;
+}
+
+.list-title {
+  font-weight: 800;
+  font-size: 15px;
+  color: #111827;
+}
+
+.list-sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.list-actions {
+  display: flex;
+  border-top: 1px solid #e5e7eb;
+}
+
+.list-actions button {
+  flex: 1;
+  border: none;
+  background: white;
+  padding: 10px;
   font-size: 12px;
   font-weight: 700;
-  padding: 4px 8px;
 }
 
-.gps-status.error {
-  background: #fef2f2;
-  color: #b91c1c;
+.list-actions .danger {
+  color: #dc2626;
+}
+
+.list-actions .export {
+  color: #2563eb;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  margin: 2px 4px 2px 0;
+}
+
+.badge-blue {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.badge-orange {
+  background: #fed7aa;
+  color: #9a3412;
+}
+
+.badge-purple {
+  background: #e9d5ff;
+  color: #6b21a8;
+}
+
+.badge-green {
+  background: #bbf7d0;
+  color: #14532d;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 8px;
+}
+
+.stat {
+  background: #f9fafb;
+  border-radius: 10px;
+  padding: 11px;
+  text-align: center;
+}
+
+.stat strong {
+  display: block;
+  font-size: 18px;
+  color: #111827;
+}
+
+.stat span {
+  font-size: 11px;
+  color: #6b7280;
 }
 
 .thumb-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3,1fr);
   gap: 8px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .thumb-wrap {
@@ -255,208 +321,82 @@ label.field-label {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
 }
 
 .thumb-remove {
   position: absolute;
   top: 4px;
   right: 4px;
-  background: rgba(0,0,0,0.65);
-  color: white;
+  width: 24px;
+  height: 24px;
   border: none;
-  width: 22px;
-  height: 22px;
   border-radius: 50%;
-  font-size: 13px;
-  line-height: 1;
+  background: rgba(0,0,0,.7);
+  color: white;
+}
+
+.thumb-count {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  background: rgba(37,99,235,.9);
+  color: white;
+  border-radius: 10px;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.checkbox-row {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 10px;
+  padding: 11px;
+  background: #f9fafb;
+  border-radius: 8px;
+  margin-top: 8px;
 }
 
-.thumb-count-badge {
-  position: absolute;
-  bottom: 4px;
-  left: 4px;
-  background: rgba(37,99,235,0.9);
-  color: white;
-  font-size: 10px;
+.checkbox-row input {
+  width: 20px;
+  height: 20px;
+}
+
+.gps-status {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1e40af;
+  font-size: 12px;
   font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 10px;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 40px 20px;
-  color: #6b7280;
-}
-
-.search-grid {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.action-row {
-  display: flex;
-  gap: 10px;
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid #e5e7eb;
+.gps-status button {
+  border: none;
+  background: none;
+  color: #2563eb;
+  font-weight: 800;
 }
 
-.action-row .btn {
-  margin-bottom: 0;
-}
-
-.point-card {
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  margin-bottom: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-}
-
-.point-photos {
+.gallery-photos {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3,1fr);
   gap: 2px;
   background: #e5e7eb;
 }
 
-.point-photos.single {
-  grid-template-columns: 1fr;
-}
-
-.point-photos img {
+.gallery-photos img {
   width: 100%;
-  height: 120px;
+  height: 115px;
   object-fit: cover;
-  display: block;
 }
 
-.point-photos.single img {
-  height: 220px;
-}
-
-.point-photos .more-overlay {
-  position: relative;
-}
-
-.point-photos .more-overlay::after {
-  content: attr(data-count);
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.55);
-  color: white;
-  font-weight: 700;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.photo-info {
-  padding: 14px;
-}
-
-.project-badge {
-  display: inline-block;
-  background: #dbeafe;
-  color: #1e40af;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.photo-count-label {
-  font-size: 12px;
-  color: #6b7280;
-  font-weight: 600;
-  margin-left: 6px;
-}
-
-.tag-badge {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  margin-right: 6px;
-  margin-bottom: 6px;
-}
-
-.tag-traffic {
-  background: #fed7aa;
-  color: #9a3412;
-}
-
-.tag-hydro {
-  background: #e9d5ff;
-  color: #6b21a8;
-}
-
-.tag-access {
-  background: #bbf7d0;
-  color: #14532d;
-}
-
-.gps-badge {
-  background: #dbeafe;
-  color: #1e40af;
-}
-
-.notes-text {
-  font-size: 13px;
-  color: #4b5563;
-  margin: 6px 0;
-}
-
-.timestamp {
-  font-size: 11px;
-  color: #9ca3af;
-  margin-bottom: 10px;
-}
-
-.card-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.card-actions button {
-  flex: 1;
-  padding: 9px;
-  border-radius: 6px;
-  border: none;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.act-dl {
-  background: #eff6ff;
-  color: #2563eb;
-}
-
-.act-del {
-  background: #fef2f2;
-  color: #dc2626;
-}
-
-input[type="file"] {
-  display: none;
-}
-
-.storage-warning {
-  background: #fef9c3;
-  color: #854d0e;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 12px;
-  margin-bottom: 16px;
+.point-info {
+  padding: 13px;
 }
 
 .toast {
@@ -466,20 +406,15 @@ input[type="file"] {
   transform: translateX(-50%) translateY(20px);
   background: #111827;
   color: white;
-  padding: 12px 20px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  padding: 11px 16px;
+  border-radius: 9px;
   z-index: 100;
   opacity: 0;
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition: .2s;
   pointer-events: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  max-width: calc(100% - 40px);
-  text-align: center;
+  max-width: calc(100% - 30px);
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .toast.show {
@@ -487,331 +422,355 @@ input[type="file"] {
   transform: translateX(-50%) translateY(0);
 }
 
-.toast .toast-thumb {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  object-fit: cover;
-  flex-shrink: 0;
+.empty {
+  padding: 28px 16px;
+  text-align: center;
+  color: #6b7280;
 }
 
-@keyframes flashHighlight {
-  0% {
-    box-shadow: 0 0 0 3px #16a34a;
-  }
-
-  100% {
-    box-shadow: 0 0 0 3px rgba(22,163,74,0);
-  }
+.hidden {
+  display: none !important;
 }
 
-.point-card.just-saved {
-  animation: flashHighlight 1.8s ease-out;
+input[type="file"] {
+  display: none;
 }
 
-.load-more-btn {
-  background: white;
-  color: #2563eb;
-  border: 1px dashed #93c5fd;
+.storage-warning {
+  display: none;
+  background: #fef9c3;
+  color: #854d0e;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  margin-bottom: 12px;
 }
 
+.section-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #4b5563;
+  margin: 4px 0 9px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.context-box {
+  padding: 11px;
+  border-radius: 9px;
+  background: #eff6ff;
+  margin-bottom: 12px;
+}
+
+.context-box strong {
+  color: #1e40af;
+}
+
+.small {
+  font-size: 12px;
+  color: #6b7280;
+}
 </style>
 </head>
 
 <body>
 
 <header>
-  <button class="back-btn" id="backBtn" onclick="history.back()">←</button>
-  <h1 id="pageTitle">Photo Tagger</h1>
+  <button class="header-btn hidden" id="backBtn" onclick="navigateBack()">←</button>
+  <h1 id="pageTitle">Project Photo Tracker</h1>
+  <button class="header-btn" onclick="goHome()">⌂</button>
 </header>
+
+<div class="breadcrumbs" id="breadcrumbs">Home</div>
+
+<div class="tabs">
+  <button class="tab active" id="tabBrowse" onclick="setMainTab('browse')">Browse</button>
+  <button class="tab" id="tabCapture" onclick="setMainTab('capture')">Capture</button>
+  <button class="tab" id="tabGallery" onclick="setMainTab('gallery')">Gallery</button>
+</div>
 
 <div class="toast" id="toast"></div>
 
-<div class="tabs">
-
-  <button
-    class="tab active"
-    id="tabCapture"
-    onclick="goTo('capture')"
-  >
-    Capture & Tag
-  </button>
-
-  <button
-    class="tab"
-    id="tabGallery"
-    onclick="goTo('gallery')"
-  >
-    Gallery (<span id="photoCount">0</span>)
-  </button>
-
-</div>
-
 <main>
 
-<div
-  id="storageWarning"
-  class="storage-warning"
-  style="display:none;"
-></div>
+<div id="storageWarning" class="storage-warning"></div>
+
+<section id="viewBrowse">
+
+  <div class="card" id="resumeCard" style="display:none;">
+    <h2>Resume Last Work Order</h2>
+    <p class="subhint">Continue where you left off without re-entering anything.</p>
+
+    <div id="resumeText" class="context-box"></div>
+
+    <button class="btn btn-primary" onclick="resumeLastWorkOrder()">
+      Continue →
+    </button>
+  </div>
+
+  <div id="browseContent"></div>
+
+</section>
 
 
-<!-- ========================================================= -->
-<!-- CAPTURE VIEW                                              -->
-<!-- ========================================================= -->
+<section id="viewCapture" class="hidden">
 
-<div id="view-capture">
+  <div id="captureNoContext" class="card hidden">
 
-  <div class="card">
-
-    <h2>Photos for this Point</h2>
+    <h2>Select a Work Order First</h2>
 
     <p class="subhint">
-      Take as many as you need, then tag them all at once below
+      Choose a project and work order before taking photos.
     </p>
 
-    <div class="thumb-grid" id="thumbGrid"></div>
-
-    <button
-      class="btn btn-primary"
-      onclick="document.getElementById('cameraInput').click()"
-    >
-      📷 Take Photo
+    <button class="btn btn-primary" onclick="setMainTab('browse')">
+      Browse Projects
     </button>
 
-    <input
-      type="file"
-      id="cameraInput"
-      accept="image/*"
-      capture="environment"
-    >
+  </div>
 
-    <button
-      class="btn btn-secondary"
-      onclick="document.getElementById('fileInput').click()"
-    >
-      📁 Upload Photo(s)
-    </button>
 
-    <input
-      type="file"
-      id="fileInput"
-      accept="image/*"
-      multiple
-    >
+  <div id="captureContext" class="hidden">
 
-    <div class="gps-status" id="gpsStatus">
+    <div class="card">
 
-      <span id="gpsStatusText">
-        📍 No location captured yet
-      </span>
+      <h2>Current Work Order</h2>
 
-      <button onclick="requestLocation(true)">
-        Update
+      <div class="context-box" id="captureContextText"></div>
+
+      <button class="btn btn-light" onclick="setMainTab('browse')">
+        Change Project / Work Order
+      </button>
+
+    </div>
+
+
+    <div class="card">
+
+      <h2>Photos for this Point</h2>
+
+      <p class="subhint">
+        Project and work order are already selected. Just name the point and take your photos.
+      </p>
+
+      <div class="thumb-grid" id="thumbGrid"></div>
+
+      <button
+        class="btn btn-primary"
+        onclick="document.getElementById('cameraInput').click()"
+      >
+        📷 Take Photo
+      </button>
+
+      <input
+        type="file"
+        id="cameraInput"
+        accept="image/*"
+        capture="environment"
+      >
+
+      <button
+        class="btn btn-secondary"
+        onclick="document.getElementById('fileInput').click()"
+      >
+        📁 Upload Photo(s)
+      </button>
+
+      <input
+        type="file"
+        id="fileInput"
+        accept="image/*"
+        multiple
+      >
+
+      <div class="gps-status">
+
+        <span id="gpsStatusText">
+          📍 No location captured yet
+        </span>
+
+        <button onclick="requestLocation(true)">
+          Update
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <h2>Point Details</h2>
+
+      <label class="field-label">
+        Point / Pole Name
+      </label>
+
+      <input
+        type="text"
+        id="pointName"
+        placeholder="e.g., Pole 23, P-001"
+      >
+
+      <p class="small" id="pointSuggestion"></p>
+
+
+      <div class="checkbox-row">
+
+        <input
+          type="checkbox"
+          id="trafficControl"
+        >
+
+        <span>
+          Traffic Control Required
+        </span>
+
+      </div>
+
+
+      <div class="checkbox-row">
+
+        <input
+          type="checkbox"
+          id="hydrovac"
+        >
+
+        <span>
+          Hydrovac Needed
+        </span>
+
+      </div>
+
+
+      <div class="checkbox-row">
+
+        <input
+          type="checkbox"
+          id="accessibilityIssue"
+        >
+
+        <span>
+          Accessibility Issue
+        </span>
+
+      </div>
+
+
+      <label class="field-label">
+        Additional Notes
+      </label>
+
+      <textarea
+        id="notes"
+        rows="3"
+        placeholder="Pole condition, equipment details, access notes, etc."
+      ></textarea>
+
+
+      <button
+        class="btn btn-success"
+        id="savePointBtn"
+        onclick="savePoint()"
+        disabled
+      >
+        💾 Save Point
+      </button>
+
+
+      <button
+        class="btn btn-danger"
+        id="clearPhotosBtn"
+        onclick="clearStaged()"
+        style="display:none;"
+      >
+        Clear Photos
       </button>
 
     </div>
 
   </div>
 
+</section>
+
+
+<section id="viewGallery" class="hidden">
 
   <div class="card">
 
-    <h2>Add Tags</h2>
-
-    <p class="subhint">
-      Applied to all photos above, and stamped directly onto each photo when exported
-    </p>
+    <h2>Photo Gallery</h2>
 
 
-    <label
-      class="field-label"
-      style="margin-top:0;"
-    >
-      Project ID (Point / Pole Name)
+    <label class="field-label">
+      Project
+    </label>
+
+    <select
+      id="galleryProjectFilter"
+      onchange="galleryFilterChanged()"
+    ></select>
+
+
+    <label class="field-label">
+      Work Order
+    </label>
+
+    <select
+      id="galleryWorkOrderFilter"
+      onchange="renderGallery()"
+    ></select>
+
+
+    <label class="field-label">
+      Search Point / Notes
     </label>
 
     <input
       type="text"
-      id="projectId"
-      placeholder="e.g., P-01, WO-123, Circuit-A"
+      id="gallerySearch"
+      placeholder="Pole 23, gate locked, hydrovac..."
+      oninput="renderGallery()"
     >
-
-    <p class="hint">
-      Photos are organized by this ID
-    </p>
-
-
-    <div class="checkbox-row">
-
-      <input
-        type="checkbox"
-        id="trafficControl"
-      >
-
-      <span>
-        Traffic Control Required
-      </span>
-
-    </div>
-
-
-    <div class="checkbox-row">
-
-      <input
-        type="checkbox"
-        id="hydrovac"
-      >
-
-      <span>
-        Hydrovac Needed
-      </span>
-
-    </div>
-
-
-    <div class="checkbox-row">
-
-      <input
-        type="checkbox"
-        id="accessibilityIssue"
-      >
-
-      <span>
-        Accessibility Issue
-      </span>
-
-    </div>
 
 
     <label class="field-label">
-      Additional Notes
+      Export Format
     </label>
 
-    <textarea
-      id="notes"
-      rows="3"
-      placeholder="Pole condition, equipment details, etc."
-    ></textarea>
+    <select id="exportFormat">
+
+      <option value="jpeg">
+        JPEG
+      </option>
+
+      <option value="png">
+        PNG
+      </option>
+
+      <option value="pdf">
+        PDF
+      </option>
+
+    </select>
 
 
-    <button
-      class="btn btn-success"
-      id="saveBtn"
-      style="margin-top:14px;"
-      onclick="savePoint()"
-      disabled
+    <div
+      class="inline-row"
+      style="margin-top:12px;"
     >
-      💾 Save Point & Tags
-    </button>
-
-
-    <button
-      class="btn btn-danger"
-      id="clearAllBtn"
-      onclick="clearStaged()"
-      style="display:none;"
-    >
-      Clear All Photos
-    </button>
-
-  </div>
-
-</div>
-
-
-<!-- ========================================================= -->
-<!-- GALLERY VIEW                                              -->
-<!-- ========================================================= -->
-
-<div
-  id="view-gallery"
-  style="display:none;"
->
-
-  <div class="card">
-
-    <div class="search-grid">
-
-      <div>
-
-        <label
-          class="field-label"
-          style="margin-top:0;"
-        >
-          Search by Project ID
-        </label>
-
-        <input
-          type="text"
-          id="searchProject"
-          placeholder="e.g., P-01, WO-123"
-          oninput="onSearchChange()"
-        >
-
-      </div>
-
-
-      <div>
-
-        <label class="field-label">
-          Search by Tags/Notes
-        </label>
-
-        <input
-          type="text"
-          id="searchTerm"
-          placeholder="Search or type: traffic control, hydrovac, accessibility issue"
-          oninput="onSearchChange()"
-        >
-
-      </div>
-
-
-      <div>
-
-        <label class="field-label">
-          Export Format
-        </label>
-
-        <select id="exportFormat">
-
-          <option value="jpeg">
-            JPEG (photo + tags stamped on)
-          </option>
-
-          <option value="png">
-            PNG (photo + tags stamped on)
-          </option>
-
-          <option value="pdf">
-            PDF (one combined file)
-          </option>
-
-        </select>
-
-      </div>
-
-    </div>
-
-
-    <div class="action-row">
 
       <button
         class="btn btn-primary"
-        id="exportShownBtn"
-        onclick="exportShownFromDB()"
+        onclick="exportFiltered()"
       >
-        ⬇ Export Shown
+        Export Shown
       </button>
 
       <button
         class="btn btn-secondary"
-        id="exportAllBtn"
-        onclick="exportAllFromDB()"
-        style="display:none;"
+        onclick="exportCurrentWorkOrder()"
       >
-        ⬇ Export All
+        Export Work Order
       </button>
 
     </div>
@@ -819,333 +778,282 @@ input[type="file"] {
   </div>
 
 
-  <div id="galleryList"></div>
+  <div id="galleryContent"></div>
 
-
-  <button
-    class="btn load-more-btn"
-    id="loadMoreBtn"
-    onclick="loadMoreResults()"
-    style="display:none;"
-  >
-    Load More
-  </button>
-
-</div>
+</section>
 
 </main>
 
 
 <script>
 
-/* ============================================================
-   GLOBAL ERROR HANDLER
-   ============================================================ */
+const DB_NAME = "projectPhotoTrackerDB";
+const DB_VERSION = 1;
 
-window.addEventListener("error", (e) => {
-
-  console.error(
-    "App error:",
-    e.error || e.message
-  );
-
-});
-
-
-/* ============================================================
-   DATABASE ARCHITECTURE
-
-   Version 3 separates:
-
-   points
-     metadata only
-
-   photos
-     actual compressed photos
-
-   drafts
-     unfinished point + photos
-
-   This means opening the app does NOT load thousands of
-   full-size images into RAM.
-   ============================================================ */
-
-const DB_NAME = "photoTaggerDB";
-
-const DB_VERSION = 3;
-
-const POINTS_STORE = "points";
-const PHOTOS_STORE = "photos";
-const DRAFT_STORE = "drafts";
-
-const CURRENT_DRAFT_ID = "current";
-
-
-const OLD_LOCALSTORAGE_KEY_V2 =
-  "photoTaggerPoints_v2";
-
-const OLD_LOCALSTORAGE_KEY_V1 =
-  "photoTaggerPhotos_v1";
-
-const OLD_DRAFT_KEY =
-  "photoTaggerDraft_v3";
-
+const STORE_PROJECTS = "projects";
+const STORE_WORKORDERS = "workorders";
+const STORE_POINTS = "points";
+const STORE_PHOTOS = "photos";
+const STORE_DRAFT = "draft";
+const STORE_SETTINGS = "settings";
 
 let dbPromise = null;
 
+let state = {
+
+  mainTab:
+    "browse",
+
+  browseLevel:
+    "projects",
+
+  selectedProjectId:
+    null,
+
+  selectedWorkOrderId:
+    null,
+
+  lastWorkOrderId:
+    null
+
+};
+
+
+let projects = [];
+let workOrders = [];
+let points = [];
+
+let stagedPhotos = [];
+let stagedGps = null;
+
+let draftTimer = null;
+let toastTimer = null;
+
 
 /* ============================================================
-   OPEN DATABASE
+   DATABASE
    ============================================================ */
 
 function openDB() {
 
-  if (dbPromise) {
+  if (
+    dbPromise
+  ) {
+
     return dbPromise;
+
   }
 
 
-  dbPromise = new Promise(
-    (resolve, reject) => {
+  dbPromise =
+    new Promise(
+      (
+        resolve,
+        reject
+      ) => {
 
-      const req =
-        indexedDB.open(
-          DB_NAME,
-          DB_VERSION
-        );
-
-
-      req.onupgradeneeded = (event) => {
-
-        const db =
-          event.target.result;
-
-        const tx =
-          event.target.transaction;
-
-
-        /* -----------------------------------------
-           POINT STORE
-           ----------------------------------------- */
-
-        let pointStore;
-
-        if (
-          !db.objectStoreNames.contains(
-            POINTS_STORE
-          )
-        ) {
-
-          pointStore =
-            db.createObjectStore(
-              POINTS_STORE,
-              {
-                keyPath: "id"
-              }
-            );
-
-        } else {
-
-          pointStore =
-            tx.objectStore(
-              POINTS_STORE
-            );
-
-        }
-
-
-        /* -----------------------------------------
-           PHOTO STORE
-           ----------------------------------------- */
-
-        let photoStore;
-
-        if (
-          !db.objectStoreNames.contains(
-            PHOTOS_STORE
-          )
-        ) {
-
-          photoStore =
-            db.createObjectStore(
-              PHOTOS_STORE,
-              {
-                keyPath: "photoId"
-              }
-            );
-
-          photoStore.createIndex(
-            "pointId",
-            "pointId",
-            {
-              unique: false
-            }
+        const request =
+          indexedDB.open(
+            DB_NAME,
+            DB_VERSION
           );
 
-        } else {
 
-          photoStore =
-            tx.objectStore(
-              PHOTOS_STORE
-            );
+        request.onupgradeneeded =
+          event => {
 
-          if (
-            !photoStore.indexNames.contains(
-              "pointId"
-            )
-          ) {
-
-            photoStore.createIndex(
-              "pointId",
-              "pointId",
-              {
-                unique: false
-              }
-            );
-
-          }
-
-        }
+            const db =
+              event.target.result;
 
 
-        /* -----------------------------------------
-           DRAFT STORE
-           ----------------------------------------- */
+            if (
+              !db.objectStoreNames.contains(
+                STORE_PROJECTS
+              )
+            ) {
 
-        if (
-          !db.objectStoreNames.contains(
-            DRAFT_STORE
-          )
-        ) {
+              db.createObjectStore(
+                STORE_PROJECTS,
+                {
+                  keyPath:
+                    "id"
+                }
+              );
 
-          db.createObjectStore(
-            DRAFT_STORE,
-            {
-              keyPath: "id"
             }
-          );
-
-        }
 
 
-        /* -----------------------------------------
-           MIGRATE OLD INDEXEDDB FORMAT
+            if (
+              !db.objectStoreNames.contains(
+                STORE_WORKORDERS
+              )
+            ) {
 
-           Old versions stored:
-
-             point.images = [...]
-
-           New version moves each image to PHOTOS_STORE.
-           ----------------------------------------- */
-
-        if (event.oldVersion > 0) {
-
-          const cursorRequest =
-            pointStore.openCursor();
-
-
-          cursorRequest.onsuccess =
-            (cursorEvent) => {
-
-              const cursor =
-                cursorEvent.target.result;
-
-              if (!cursor) {
-                return;
-              }
-
-              const oldPoint =
-                cursor.value;
-
-
-              if (
-                Array.isArray(oldPoint.images)
-              ) {
-
-                const oldImages =
-                  oldPoint.images;
-
-
-                oldImages.forEach(
-                  (imageData, index) => {
-
-                    photoStore.put({
-
-                      photoId:
-                        `${oldPoint.id}_${index}_${Math.random()
-                          .toString(36)
-                          .slice(2)}`,
-
-                      pointId:
-                        oldPoint.id,
-
-                      index,
-
-                      imageData
-
-                    });
-
+              const store =
+                db.createObjectStore(
+                  STORE_WORKORDERS,
+                  {
+                    keyPath:
+                      "id"
                   }
                 );
 
 
-                delete oldPoint.images;
+              store.createIndex(
+                "projectId",
+                "projectId",
+                {
+                  unique:
+                    false
+                }
+              );
+
+            }
 
 
-                oldPoint.photoCount =
-                  oldImages.length;
+            if (
+              !db.objectStoreNames.contains(
+                STORE_POINTS
+              )
+            ) {
 
-
-                oldPoint.previewThumbs =
-                  [];
-
-
-                oldPoint.needsThumbnailMigration =
-                  oldImages.length > 0;
-
-
-                cursor.update(
-                  oldPoint
+              const store =
+                db.createObjectStore(
+                  STORE_POINTS,
+                  {
+                    keyPath:
+                      "id"
+                  }
                 );
 
-              }
+
+              store.createIndex(
+                "workOrderId",
+                "workOrderId",
+                {
+                  unique:
+                    false
+                }
+              );
 
 
-              cursor.continue();
+              store.createIndex(
+                "projectId",
+                "projectId",
+                {
+                  unique:
+                    false
+                }
+              );
 
-            };
-
-        }
-
-      };
-
-
-      req.onsuccess = () => {
-
-        const db =
-          req.result;
+            }
 
 
-        db.onversionchange = () => {
-          db.close();
-        };
+            if (
+              !db.objectStoreNames.contains(
+                STORE_PHOTOS
+              )
+            ) {
+
+              const store =
+                db.createObjectStore(
+                  STORE_PHOTOS,
+                  {
+                    keyPath:
+                      "id"
+                  }
+                );
 
 
-        resolve(db);
+              store.createIndex(
+                "pointId",
+                "pointId",
+                {
+                  unique:
+                    false
+                }
+              );
 
-      };
+
+              store.createIndex(
+                "workOrderId",
+                "workOrderId",
+                {
+                  unique:
+                    false
+                }
+              );
 
 
-      req.onerror = () => {
+              store.createIndex(
+                "projectId",
+                "projectId",
+                {
+                  unique:
+                    false
+                }
+              );
 
-        reject(
-          req.error
-        );
+            }
 
-      };
 
-    }
-  );
+            if (
+              !db.objectStoreNames.contains(
+                STORE_DRAFT
+              )
+            ) {
+
+              db.createObjectStore(
+                STORE_DRAFT,
+                {
+                  keyPath:
+                    "id"
+                }
+              );
+
+            }
+
+
+            if (
+              !db.objectStoreNames.contains(
+                STORE_SETTINGS
+              )
+            ) {
+
+              db.createObjectStore(
+                STORE_SETTINGS,
+                {
+                  keyPath:
+                    "id"
+                }
+              );
+
+            }
+
+          };
+
+
+        request.onsuccess =
+          () => {
+
+            resolve(
+              request.result
+            );
+
+          };
+
+
+        request.onerror =
+          () => {
+
+            reject(
+              request.error
+            );
+
+          };
+
+      }
+    );
 
 
   return dbPromise;
@@ -1153,11 +1061,62 @@ function openDB() {
 }
 
 
-/* ============================================================
-   GENERIC DATABASE HELPERS
-   ============================================================ */
+async function getAll(
+  storeName
+) {
 
-async function dbGet(
+  const db =
+    await openDB();
+
+
+  return new Promise(
+    (
+      resolve,
+      reject
+    ) => {
+
+      const transaction =
+        db.transaction(
+          storeName,
+          "readonly"
+        );
+
+
+      const request =
+        transaction
+          .objectStore(
+            storeName
+          )
+          .getAll();
+
+
+      request.onsuccess =
+        () => {
+
+          resolve(
+            request.result ||
+            []
+          );
+
+        };
+
+
+      request.onerror =
+        () => {
+
+          reject(
+            request.error
+          );
+
+        };
+
+    }
+  );
+
+}
+
+
+async function getOne(
   storeName,
   key
 ) {
@@ -1167,37 +1126,45 @@ async function dbGet(
 
 
   return new Promise(
-    (resolve, reject) => {
+    (
+      resolve,
+      reject
+    ) => {
 
-      const tx =
+      const transaction =
         db.transaction(
           storeName,
           "readonly"
         );
 
 
-      const req =
-        tx.objectStore(
-          storeName
-        ).get(key);
+      const request =
+        transaction
+          .objectStore(
+            storeName
+          )
+          .get(key);
 
 
-      req.onsuccess = () => {
+      request.onsuccess =
+        () => {
 
-        resolve(
-          req.result || null
-        );
+          resolve(
+            request.result ||
+            null
+          );
 
-      };
+        };
 
 
-      req.onerror = () => {
+      request.onerror =
+        () => {
 
-        reject(
-          req.error
-        );
+          reject(
+            request.error
+          );
 
-      };
+        };
 
     }
   );
@@ -1205,7 +1172,7 @@ async function dbGet(
 }
 
 
-async function dbPut(
+async function putOne(
   storeName,
   value
 ) {
@@ -1215,37 +1182,41 @@ async function dbPut(
 
 
   return new Promise(
-    (resolve, reject) => {
+    (
+      resolve,
+      reject
+    ) => {
 
-      const tx =
+      const transaction =
         db.transaction(
           storeName,
           "readwrite"
         );
 
 
-      tx.objectStore(
-        storeName
-      ).put(value);
+      transaction
+        .objectStore(
+          storeName
+        )
+        .put(value);
 
 
-      tx.oncomplete = () => {
-        resolve(true);
-      };
+      transaction.oncomplete =
+        () => {
+
+          resolve(true);
+
+        };
 
 
-      tx.onerror = () => {
-        reject(
-          tx.error
-        );
-      };
+      transaction.onerror =
+        () => {
 
+          reject(
+            transaction.error
+          );
 
-      tx.onabort = () => {
-        reject(
-          tx.error
-        );
-      };
+        };
 
     }
   );
@@ -1253,7 +1224,7 @@ async function dbPut(
 }
 
 
-async function dbDelete(
+async function deleteOneRecord(
   storeName,
   key
 ) {
@@ -1263,30 +1234,41 @@ async function dbDelete(
 
 
   return new Promise(
-    (resolve, reject) => {
+    (
+      resolve,
+      reject
+    ) => {
 
-      const tx =
+      const transaction =
         db.transaction(
           storeName,
           "readwrite"
         );
 
 
-      tx.objectStore(
-        storeName
-      ).delete(key);
+      transaction
+        .objectStore(
+          storeName
+        )
+        .delete(key);
 
 
-      tx.oncomplete = () => {
-        resolve(true);
-      };
+      transaction.oncomplete =
+        () => {
+
+          resolve(true);
+
+        };
 
 
-      tx.onerror = () => {
-        reject(
-          tx.error
-        );
-      };
+      transaction.onerror =
+        () => {
+
+          reject(
+            transaction.error
+          );
+
+        };
 
     }
   );
@@ -1294,15 +1276,10 @@ async function dbDelete(
 }
 
 
-/* ============================================================
-   SAVE COMPLETE POINT
-
-   Saves metadata and individual photos in one transaction.
-   ============================================================ */
-
-async function dbSavePoint(
-  point,
-  staged
+async function getByIndex(
+  storeName,
+  indexName,
+  value
 ) {
 
   const db =
@@ -1310,374 +1287,55 @@ async function dbSavePoint(
 
 
   return new Promise(
-    (resolve, reject) => {
+    (
+      resolve,
+      reject
+    ) => {
 
-      const tx =
+      const transaction =
         db.transaction(
-          [
-            POINTS_STORE,
-            PHOTOS_STORE
-          ],
-          "readwrite"
-        );
-
-
-      const pointStore =
-        tx.objectStore(
-          POINTS_STORE
-        );
-
-
-      const photoStore =
-        tx.objectStore(
-          PHOTOS_STORE
-        );
-
-
-      const metadata = {
-
-        id:
-          point.id,
-
-        projectId:
-          point.projectId,
-
-        photoCount:
-          staged.length,
-
-        previewThumbs:
-          staged
-            .slice(0,3)
-            .map(p => p.thumb),
-
-        trafficControl:
-          point.trafficControl,
-
-        hydrovac:
-          point.hydrovac,
-
-        accessibilityIssue:
-          point.accessibilityIssue,
-
-        gps:
-          point.gps,
-
-        notes:
-          point.notes,
-
-        timestamp:
-          point.timestamp,
-
-        createdAt:
-          point.createdAt
-
-      };
-
-
-      pointStore.put(
-        metadata
-      );
-
-
-      staged.forEach(
-        (photo, index) => {
-
-          photoStore.put({
-
-            photoId:
-              `${point.id}_${index}_${Math.random()
-                .toString(36)
-                .slice(2)}`,
-
-            pointId:
-              point.id,
-
-            index,
-
-            imageData:
-              photo.full
-
-          });
-
-        }
-      );
-
-
-      tx.oncomplete = () => {
-
-        resolve(
-          metadata
-        );
-
-      };
-
-
-      tx.onerror = () => {
-
-        reject(
-          tx.error
-        );
-
-      };
-
-
-      tx.onabort = () => {
-
-        reject(
-          tx.error
-        );
-
-      };
-
-    }
-  );
-
-}
-
-
-/* ============================================================
-   LOAD ALL POINT METADATA ONLY
-
-   No full photos are loaded here.
-   ============================================================ */
-
-async function dbGetAllPointMetadata() {
-
-  const db =
-    await openDB();
-
-
-  return new Promise(
-    (resolve, reject) => {
-
-      const tx =
-        db.transaction(
-          POINTS_STORE,
+          storeName,
           "readonly"
         );
 
 
-      const store =
-        tx.objectStore(
-          POINTS_STORE
-        );
-
-
-      const results =
-        [];
-
-
-      const req =
-        store.openCursor();
-
-
-      req.onsuccess =
-        (event) => {
-
-          const cursor =
-            event.target.result;
-
-
-          if (!cursor) {
-
-            results.sort(
-              (a,b) =>
-                b.id - a.id
-            );
-
-            resolve(
-              results
-            );
-
-            return;
-
-          }
-
-
-          results.push(
-            cursor.value
+      const index =
+        transaction
+          .objectStore(
+            storeName
+          )
+          .index(
+            indexName
           );
 
 
-          cursor.continue();
-
-        };
-
-
-      req.onerror = () => {
-
-        reject(
-          req.error
-        );
-
-      };
-
-    }
-  );
-
-}
-
-
-/* ============================================================
-   LOAD PHOTOS FOR ONE POINT
-   ============================================================ */
-
-async function dbGetPhotosForPoint(
-  pointId
-) {
-
-  const db =
-    await openDB();
-
-
-  return new Promise(
-    (resolve, reject) => {
-
-      const tx =
-        db.transaction(
-          PHOTOS_STORE,
-          "readonly"
-        );
-
-
-      const store =
-        tx.objectStore(
-          PHOTOS_STORE
-        );
-
-
-      const index =
-        store.index(
-          "pointId"
-        );
-
-
-      const req =
+      const request =
         index.getAll(
           IDBKeyRange.only(
-            pointId
+            value
           )
         );
 
 
-      req.onsuccess = () => {
+      request.onsuccess =
+        () => {
 
-        const photos =
-          req.result || [];
-
-
-        photos.sort(
-          (a,b) =>
-            a.index - b.index
-        );
-
-
-        resolve(
-          photos
-        );
-
-      };
-
-
-      req.onerror = () => {
-
-        reject(
-          req.error
-        );
-
-      };
-
-    }
-  );
-
-}
-
-
-/* ============================================================
-   DELETE POINT + ALL PHOTOS
-   ============================================================ */
-
-async function dbDeletePoint(
-  pointId
-) {
-
-  const db =
-    await openDB();
-
-
-  return new Promise(
-    (resolve, reject) => {
-
-      const tx =
-        db.transaction(
-          [
-            POINTS_STORE,
-            PHOTOS_STORE
-          ],
-          "readwrite"
-        );
-
-
-      tx.objectStore(
-        POINTS_STORE
-      ).delete(
-        pointId
-      );
-
-
-      const photoStore =
-        tx.objectStore(
-          PHOTOS_STORE
-        );
-
-
-      const index =
-        photoStore.index(
-          "pointId"
-        );
-
-
-      const req =
-        index.openCursor(
-          IDBKeyRange.only(
-            pointId
-          )
-        );
-
-
-      req.onsuccess =
-        (event) => {
-
-          const cursor =
-            event.target.result;
-
-
-          if (!cursor) {
-            return;
-          }
-
-
-          cursor.delete();
-
-          cursor.continue();
+          resolve(
+            request.result ||
+            []
+          );
 
         };
 
 
-      tx.oncomplete = () => {
+      request.onerror =
+        () => {
 
-        resolve(true);
+          reject(
+            request.error
+          );
 
-      };
-
-
-      tx.onerror = () => {
-
-        reject(
-          tx.error
-        );
-
-      };
+        };
 
     }
   );
@@ -1686,72 +1344,80 @@ async function dbDeletePoint(
 
 
 /* ============================================================
-   STATE
+   HELPERS
    ============================================================ */
 
-let points =
-  [];
+function makeId(
+  prefix
+) {
+
+  return (
+    prefix +
+    "_" +
+    Date.now() +
+    "_" +
+    Math.random()
+      .toString(36)
+      .slice(2,8)
+  );
+
+}
 
 
-/*
- stagedImages contains only the current unsaved point:
+function escapeHtml(
+  value
+) {
 
- {
-   full: compressed 1280px image,
-   thumb: tiny gallery thumbnail
- }
-*/
-
-let stagedImages =
-  [];
+  const div =
+    document.createElement(
+      "div"
+    );
 
 
-let stagedGps =
-  null;
+  div.textContent =
+    value == null
+      ? ""
+      : String(value);
 
 
-let lastSavedPointId =
-  null;
+  return div.innerHTML;
+
+}
 
 
-const GALLERY_PAGE_SIZE =
-  30;
+function sanitizeName(
+  name
+) {
 
+  return (
+    name ||
+    "Unlabeled"
+  )
+    .trim()
+    .replace(
+      /[\/\\?%*:|"<>]/g,
+      "-"
+    );
 
-let galleryRenderLimit =
-  GALLERY_PAGE_SIZE;
-
-
-/* ============================================================
-   TOAST
-   ============================================================ */
-
-let toastTimer =
-  null;
+}
 
 
 function showToast(
   message,
-  thumbUrl = null,
   sticky = false
 ) {
 
-  const toast =
+  const element =
     document.getElementById(
       "toast"
     );
 
 
-  toast.innerHTML =
-    (
-      thumbUrl
-        ? `<img class="toast-thumb" src="${thumbUrl}">`
-        : ""
-    ) +
-    `<span>${escapeHtml(message)}</span>`;
+  element.textContent =
+    message;
 
 
-  toast.classList.add(
+  element.classList.add(
     "show"
   );
 
@@ -1761,13 +1427,15 @@ function showToast(
   );
 
 
-  if (!sticky) {
+  if (
+    !sticky
+  ) {
 
     toastTimer =
       setTimeout(
         () => {
 
-          toast.classList.remove(
+          element.classList.remove(
             "show"
           );
 
@@ -1794,62 +1462,273 @@ function hideToast() {
 }
 
 
-/* ============================================================
-   NAVIGATION
-   ============================================================ */
+function getSelectedProject() {
 
-function safeHistory(
-  method,
-  state,
-  url
-) {
-
-  try {
-
-    history[method](
-      state,
-      "",
-      url
-    );
-
-  } catch (e) {
-
-    console.warn(
-      "History unavailable",
-      e
-    );
-
-  }
+  return (
+    projects.find(
+      project =>
+        project.id ===
+        state.selectedProjectId
+    ) ||
+    null
+  );
 
 }
 
 
-function goTo(
-  view,
-  pushState = true
+function getSelectedWorkOrder() {
+
+  return (
+    workOrders.find(
+      workOrder =>
+        workOrder.id ===
+        state.selectedWorkOrderId
+    ) ||
+    null
+  );
+
+}
+
+
+function getProjectById(
+  id
 ) {
 
-  document.getElementById(
-    "view-capture"
-  ).style.display =
-    view === "capture"
-      ? "block"
-      : "none";
+  return (
+    projects.find(
+      project =>
+        project.id === id
+    ) ||
+    null
+  );
+
+}
+
+
+function getWorkOrderById(
+  id
+) {
+
+  return (
+    workOrders.find(
+      workOrder =>
+        workOrder.id === id
+    ) ||
+    null
+  );
+
+}
+
+
+function projectWorkOrders(
+  projectId
+) {
+
+  return workOrders.filter(
+    workOrder =>
+      workOrder.projectId ===
+      projectId
+  );
+
+}
+
+
+function workOrderPoints(
+  workOrderId
+) {
+
+  return points.filter(
+    point =>
+      point.workOrderId ===
+      workOrderId
+  );
+
+}
+
+
+/* ============================================================
+   HEADER / NAVIGATION
+   ============================================================ */
+
+function updateBreadcrumbs() {
+
+  const project =
+    getSelectedProject();
+
+
+  const workOrder =
+    getSelectedWorkOrder();
+
+
+  let text =
+    "Home";
+
+
+  if (
+    project
+  ) {
+
+    text +=
+      " › " +
+      project.name;
+
+  }
+
+
+  if (
+    workOrder
+  ) {
+
+    text +=
+      " › " +
+      workOrder.number;
+
+  }
 
 
   document.getElementById(
-    "view-gallery"
-  ).style.display =
-    view === "gallery"
-      ? "block"
-      : "none";
+    "breadcrumbs"
+  ).textContent =
+    text;
+
+
+  const backButton =
+    document.getElementById(
+      "backBtn"
+    );
+
+
+  backButton.classList.toggle(
+    "hidden",
+    !project &&
+    state.browseLevel ===
+      "projects"
+  );
+
+}
+
+
+function updateHeader() {
+
+  let title =
+    "Project Photo Tracker";
+
+
+  if (
+    state.mainTab ===
+    "capture"
+  ) {
+
+    title =
+      "Capture Point";
+
+  }
+
+
+  if (
+    state.mainTab ===
+    "gallery"
+  ) {
+
+    title =
+      "Gallery";
+
+  }
+
+
+  if (
+    state.mainTab ===
+    "browse"
+  ) {
+
+    if (
+      state.browseLevel ===
+      "projects"
+    ) {
+
+      title =
+        "Projects";
+
+    }
+
+
+    if (
+      state.browseLevel ===
+      "workorders"
+    ) {
+
+      title =
+        "Work Orders";
+
+    }
+
+
+    if (
+      state.browseLevel ===
+      "points"
+    ) {
+
+      title =
+        "Points";
+
+    }
+
+  }
+
+
+  document.getElementById(
+    "pageTitle"
+  ).textContent =
+    title;
+
+}
+
+
+function setMainTab(
+  tab
+) {
+
+  state.mainTab =
+    tab;
+
+
+  document.getElementById(
+    "viewBrowse"
+  ).classList.toggle(
+    "hidden",
+    tab !== "browse"
+  );
+
+
+  document.getElementById(
+    "viewCapture"
+  ).classList.toggle(
+    "hidden",
+    tab !== "capture"
+  );
+
+
+  document.getElementById(
+    "viewGallery"
+  ).classList.toggle(
+    "hidden",
+    tab !== "gallery"
+  );
+
+
+  document.getElementById(
+    "tabBrowse"
+  ).classList.toggle(
+    "active",
+    tab === "browse"
+  );
 
 
   document.getElementById(
     "tabCapture"
   ).classList.toggle(
     "active",
-    view === "capture"
+    tab === "capture"
   );
 
 
@@ -1857,275 +1736,1475 @@ function goTo(
     "tabGallery"
   ).classList.toggle(
     "active",
-    view === "gallery"
-  );
-
-
-  document.getElementById(
-    "pageTitle"
-  ).textContent =
-    view === "capture"
-      ? "Photo Tagger"
-      : "Gallery";
-
-
-  document.getElementById(
-    "backBtn"
-  ).classList.toggle(
-    "show",
-    view === "gallery"
+    tab === "gallery"
   );
 
 
   if (
-    view === "gallery"
+    tab ===
+    "browse"
   ) {
 
-    renderGallery();
+    renderBrowse();
 
   }
 
 
   if (
-    pushState
+    tab ===
+    "capture"
   ) {
 
-    safeHistory(
-      "pushState",
-      { view },
-      "#" + view
-    );
+    renderCaptureContext();
 
   }
+
+
+  if (
+    tab ===
+    "gallery"
+  ) {
+
+    setupGalleryFilters();
+
+  }
+
+
+  updateHeader();
+
+  updateBreadcrumbs();
 
 }
 
 
-window.addEventListener(
-  "popstate",
-  (e) => {
+function goHome() {
 
-    const view =
-      (
-        e.state &&
-        e.state.view
-      ) ||
-      "capture";
+  state.mainTab =
+    "browse";
 
 
-    goTo(
-      view,
-      false
-    );
-
-  }
-);
+  state.browseLevel =
+    "projects";
 
 
-safeHistory(
-  "replaceState",
-  {
-    view: "capture"
-  },
-  "#capture"
-);
+  state.selectedProjectId =
+    null;
 
 
-/* ============================================================
-   GPS
-   ============================================================ */
-
-function requestLocation(
-  manual
-) {
-
-  const statusEl =
-    document.getElementById(
-      "gpsStatus"
-    );
+  state.selectedWorkOrderId =
+    null;
 
 
-  const textEl =
-    document.getElementById(
-      "gpsStatusText"
-    );
+  setMainTab(
+    "browse"
+  );
 
+}
+
+
+function navigateBack() {
 
   if (
-    !(
-      "geolocation" in navigator
-    )
+    state.mainTab !==
+    "browse"
   ) {
 
-    statusEl.classList.add(
-      "error"
+    setMainTab(
+      "browse"
     );
-
-
-    textEl.textContent =
-      "📍 Location not supported on this device";
-
 
     return;
 
   }
 
 
-  statusEl.classList.remove(
-    "error"
-  );
+  if (
+    state.browseLevel ===
+    "points"
+  ) {
+
+    state.browseLevel =
+      "workorders";
 
 
-  textEl.textContent =
-    "📍 Getting location…";
+    state.selectedWorkOrderId =
+      null;
+
+  } else if (
+    state.browseLevel ===
+    "workorders"
+  ) {
+
+    state.browseLevel =
+      "projects";
 
 
-  navigator.geolocation.getCurrentPosition(
+    state.selectedProjectId =
+      null;
 
-    (pos) => {
-
-      stagedGps = {
-
-        lat:
-          pos.coords.latitude,
-
-        lng:
-          pos.coords.longitude,
-
-        accuracy:
-          pos.coords.accuracy
-
-      };
+  }
 
 
-      updateGpsStatus();
+  renderBrowse();
 
-      scheduleDraftSave();
-
-    },
+}
 
 
-    (err) => {
+/* ============================================================
+   SETTINGS / RESUME
+   ============================================================ */
 
-      statusEl.classList.add(
-        "error"
-      );
+async function saveSettings() {
 
-
-      let msg =
-        "Location unavailable";
-
-
-      if (
-        err.code === 1
-      ) {
-
-        msg =
-          "Location permission denied — enable it in Settings to tag GPS";
-
-      } else if (
-        err.code === 2
-      ) {
-
-        msg =
-          "Location unavailable right now";
-
-      } else if (
-        err.code === 3
-      ) {
-
-        msg =
-          "Location request timed out";
-
-      }
-
-
-      textEl.textContent =
-        "📍 " + msg;
-
-
-      if (
-        manual
-      ) {
-
-        showToast(
-          msg
-        );
-
-      }
-
-    },
-
-
+  await putOne(
+    STORE_SETTINGS,
     {
-      enableHighAccuracy:
-        true,
 
-      timeout:
-        15000,
+      id:
+        "app",
 
-      maximumAge:
-        60000
+      lastProjectId:
+        state.selectedProjectId,
+
+      lastWorkOrderId:
+        state.selectedWorkOrderId
+
     }
-
   );
 
 }
 
 
-function updateGpsStatus() {
+async function loadSettings() {
 
-  const statusEl =
-    document.getElementById(
-      "gpsStatus"
-    );
-
-
-  const textEl =
-    document.getElementById(
-      "gpsStatusText"
+  const settings =
+    await getOne(
+      STORE_SETTINGS,
+      "app"
     );
 
 
   if (
-    stagedGps
+    settings
   ) {
 
-    statusEl.classList.remove(
-      "error"
-    );
-
-
-    textEl.textContent =
-      `📍 ${stagedGps.lat.toFixed(6)}, ${stagedGps.lng.toFixed(6)} (±${Math.round(stagedGps.accuracy)}m)`;
-
-  } else {
-
-    textEl.textContent =
-      "📍 No location captured yet";
+    state.lastWorkOrderId =
+      settings.lastWorkOrderId ||
+      null;
 
   }
 
 }
 
 
+function renderResume() {
+
+  const card =
+    document.getElementById(
+      "resumeCard"
+    );
+
+
+  if (
+    !state.lastWorkOrderId
+  ) {
+
+    card.style.display =
+      "none";
+
+    return;
+
+  }
+
+
+  const workOrder =
+    getWorkOrderById(
+      state.lastWorkOrderId
+    );
+
+
+  if (
+    !workOrder
+  ) {
+
+    card.style.display =
+      "none";
+
+    return;
+
+  }
+
+
+  const project =
+    getProjectById(
+      workOrder.projectId
+    );
+
+
+  if (
+    !project
+  ) {
+
+    card.style.display =
+      "none";
+
+    return;
+
+  }
+
+
+  document.getElementById(
+    "resumeText"
+  ).innerHTML =
+    `
+      <strong>
+        ${escapeHtml(project.name)}
+      </strong>
+      <br>
+
+      Work Order:
+      ${escapeHtml(workOrder.number)}
+
+      <br>
+
+      <span class="small">
+        ${workOrderPoints(workOrder.id).length}
+        saved point(s)
+      </span>
+    `;
+
+
+  card.style.display =
+    "block";
+
+}
+
+
+function resumeLastWorkOrder() {
+
+  const workOrder =
+    getWorkOrderById(
+      state.lastWorkOrderId
+    );
+
+
+  if (
+    !workOrder
+  ) {
+
+    return;
+
+  }
+
+
+  state.selectedProjectId =
+    workOrder.projectId;
+
+
+  state.selectedWorkOrderId =
+    workOrder.id;
+
+
+  state.browseLevel =
+    "points";
+
+
+  setMainTab(
+    "capture"
+  );
+
+}
+
+
 /* ============================================================
-   IMAGE PROCESSING
+   BROWSE
    ============================================================ */
 
-function readFileAsDataURL(
+function renderBrowse() {
+
+  renderResume();
+
+
+  if (
+    state.browseLevel ===
+    "projects"
+  ) {
+
+    renderProjects();
+
+  }
+
+
+  if (
+    state.browseLevel ===
+    "workorders"
+  ) {
+
+    renderWorkOrders();
+
+  }
+
+
+  if (
+    state.browseLevel ===
+    "points"
+  ) {
+
+    renderPoints();
+
+  }
+
+
+  updateHeader();
+
+  updateBreadcrumbs();
+
+}
+
+
+/* ============================================================
+   PROJECTS
+   ============================================================ */
+
+function renderProjects() {
+
+  const element =
+    document.getElementById(
+      "browseContent"
+    );
+
+
+  const totalPhotos =
+    points.reduce(
+      (
+        sum,
+        point
+      ) =>
+        sum +
+        (
+          point.photoCount ||
+          0
+        ),
+      0
+    );
+
+
+  let html =
+    `
+      <div class="card">
+
+        <h2>
+          Projects
+        </h2>
+
+        <p class="subhint">
+          Create each project once. Then organize work orders underneath it.
+        </p>
+
+        <div class="stats">
+
+          <div class="stat">
+            <strong>
+              ${projects.length}
+            </strong>
+            <span>
+              Projects
+            </span>
+          </div>
+
+          <div class="stat">
+            <strong>
+              ${workOrders.length}
+            </strong>
+            <span>
+              Work Orders
+            </span>
+          </div>
+
+          <div class="stat">
+            <strong>
+              ${totalPhotos}
+            </strong>
+            <span>
+              Photos
+            </span>
+          </div>
+
+        </div>
+
+
+        <label class="field-label">
+          New Project Name
+        </label>
+
+        <input
+          type="text"
+          id="newProjectName"
+          placeholder="e.g., Crystal Phase II"
+        >
+
+
+        <button
+          class="btn btn-primary"
+          style="margin-top:10px;"
+          onclick="createProject()"
+        >
+          + New Project
+        </button>
+
+      </div>
+    `;
+
+
+  if (
+    projects.length === 0
+  ) {
+
+    html +=
+      `
+        <div class="card empty">
+          No projects yet.
+        </div>
+      `;
+
+  } else {
+
+    html +=
+      `
+        <div class="section-title">
+          Projects
+        </div>
+      `;
+
+
+    for (
+      const project of
+      projects
+        .slice()
+        .sort(
+          (
+            a,
+            b
+          ) =>
+            b.createdAt -
+            a.createdAt
+        )
+    ) {
+
+      const projectWorkOrderList =
+        projectWorkOrders(
+          project.id
+        );
+
+
+      const projectPoints =
+        points.filter(
+          point =>
+            point.projectId ===
+            project.id
+        );
+
+
+      const photos =
+        projectPoints.reduce(
+          (
+            sum,
+            point
+          ) =>
+            sum +
+            (
+              point.photoCount ||
+              0
+            ),
+          0
+        );
+
+
+      html +=
+        `
+          <div class="list-card">
+
+            <div class="list-main">
+
+              <button
+                onclick="openProject('${project.id}')"
+              >
+
+                <div class="list-title">
+                  ${escapeHtml(project.name)}
+                </div>
+
+                <div class="list-sub">
+                  ${projectWorkOrderList.length}
+                  work order(s)
+                  •
+                  ${projectPoints.length}
+                  point(s)
+                  •
+                  ${photos}
+                  photo(s)
+                </div>
+
+              </button>
+
+            </div>
+
+
+            <div class="list-actions">
+
+              <button
+                class="export"
+                onclick="exportProject('${project.id}')"
+              >
+                Export
+              </button>
+
+              <button
+                class="danger"
+                onclick="deleteProject('${project.id}')"
+              >
+                Delete
+              </button>
+
+            </div>
+
+          </div>
+        `;
+
+    }
+
+  }
+
+
+  element.innerHTML =
+    html;
+
+}
+
+
+async function createProject() {
+
+  const input =
+    document.getElementById(
+      "newProjectName"
+    );
+
+
+  const name =
+    input.value.trim();
+
+
+  if (
+    !name
+  ) {
+
+    alert(
+      "Enter a project name."
+    );
+
+    return;
+
+  }
+
+
+  const project = {
+
+    id:
+      makeId(
+        "project"
+      ),
+
+    name,
+
+    createdAt:
+      Date.now()
+
+  };
+
+
+  await putOne(
+    STORE_PROJECTS,
+    project
+  );
+
+
+  projects.push(
+    project
+  );
+
+
+  input.value =
+    "";
+
+
+  renderProjects();
+
+
+  showToast(
+    "Project created"
+  );
+
+}
+
+
+function openProject(
+  id
+) {
+
+  state.selectedProjectId =
+    id;
+
+
+  state.selectedWorkOrderId =
+    null;
+
+
+  state.browseLevel =
+    "workorders";
+
+
+  renderBrowse();
+
+}
+
+
+/* ============================================================
+   WORK ORDERS
+   ============================================================ */
+
+function renderWorkOrders() {
+
+  const project =
+    getSelectedProject();
+
+
+  const element =
+    document.getElementById(
+      "browseContent"
+    );
+
+
+  if (
+    !project
+  ) {
+
+    goHome();
+
+    return;
+
+  }
+
+
+  const list =
+    projectWorkOrders(
+      project.id
+    );
+
+
+  let html =
+    `
+      <div class="card">
+
+        <h2>
+          ${escapeHtml(project.name)}
+        </h2>
+
+        <p class="subhint">
+          Add each work order once. You can keep taking points under it all day.
+        </p>
+
+
+        <label class="field-label">
+          New Work Order
+        </label>
+
+        <input
+          type="text"
+          id="newWorkOrderNumber"
+          placeholder="e.g., 50773454"
+        >
+
+
+        <label class="field-label">
+          Description (optional)
+        </label>
+
+        <input
+          type="text"
+          id="newWorkOrderDescription"
+          placeholder="e.g., Reconductor / Pole replacements"
+        >
+
+
+        <button
+          class="btn btn-primary"
+          style="margin-top:10px;"
+          onclick="createWorkOrder()"
+        >
+          + New Work Order
+        </button>
+
+      </div>
+    `;
+
+
+  if (
+    list.length === 0
+  ) {
+
+    html +=
+      `
+        <div class="card empty">
+          No work orders yet.
+        </div>
+      `;
+
+  } else {
+
+    html +=
+      `
+        <div class="section-title">
+          Work Orders
+        </div>
+      `;
+
+
+    for (
+      const workOrder of
+      list
+        .slice()
+        .sort(
+          (
+            a,
+            b
+          ) =>
+            b.createdAt -
+            a.createdAt
+        )
+    ) {
+
+      const savedPoints =
+        workOrderPoints(
+          workOrder.id
+        );
+
+
+      const photos =
+        savedPoints.reduce(
+          (
+            sum,
+            point
+          ) =>
+            sum +
+            (
+              point.photoCount ||
+              0
+            ),
+          0
+        );
+
+
+      html +=
+        `
+          <div class="list-card">
+
+            <div class="list-main">
+
+              <button
+                onclick="openWorkOrder('${workOrder.id}')"
+              >
+
+                <div class="list-title">
+                  ${escapeHtml(workOrder.number)}
+                </div>
+
+
+                <div class="list-sub">
+
+                  ${escapeHtml(workOrder.description || "")}
+
+                  ${
+                    workOrder.description
+                      ? " • "
+                      : ""
+                  }
+
+                  ${savedPoints.length}
+                  point(s)
+
+                  •
+
+                  ${photos}
+                  photo(s)
+
+                </div>
+
+              </button>
+
+            </div>
+
+
+            <div class="list-actions">
+
+              <button
+                class="export"
+                onclick="exportWorkOrderById('${workOrder.id}')"
+              >
+                Export
+              </button>
+
+              <button
+                class="danger"
+                onclick="deleteWorkOrder('${workOrder.id}')"
+              >
+                Delete
+              </button>
+
+            </div>
+
+          </div>
+        `;
+
+    }
+
+  }
+
+
+  element.innerHTML =
+    html;
+
+}
+
+
+async function createWorkOrder() {
+
+  const project =
+    getSelectedProject();
+
+
+  if (
+    !project
+  ) {
+
+    return;
+
+  }
+
+
+  const number =
+    document
+      .getElementById(
+        "newWorkOrderNumber"
+      )
+      .value
+      .trim();
+
+
+  const description =
+    document
+      .getElementById(
+        "newWorkOrderDescription"
+      )
+      .value
+      .trim();
+
+
+  if (
+    !number
+  ) {
+
+    alert(
+      "Enter a work order number."
+    );
+
+    return;
+
+  }
+
+
+  const duplicate =
+    workOrders.some(
+      workOrder =>
+        workOrder.projectId ===
+          project.id &&
+        workOrder.number.toLowerCase() ===
+          number.toLowerCase()
+    );
+
+
+  if (
+    duplicate
+  ) {
+
+    alert(
+      "That work order already exists under this project."
+    );
+
+    return;
+
+  }
+
+
+  const workOrder = {
+
+    id:
+      makeId(
+        "wo"
+      ),
+
+    projectId:
+      project.id,
+
+    number,
+
+    description,
+
+    createdAt:
+      Date.now()
+
+  };
+
+
+  await putOne(
+    STORE_WORKORDERS,
+    workOrder
+  );
+
+
+  workOrders.push(
+    workOrder
+  );
+
+
+  state.selectedWorkOrderId =
+    workOrder.id;
+
+
+  state.lastWorkOrderId =
+    workOrder.id;
+
+
+  await saveSettings();
+
+
+  state.browseLevel =
+    "points";
+
+
+  renderBrowse();
+
+
+  showToast(
+    "Work order created"
+  );
+
+}
+
+
+function openWorkOrder(
+  id
+) {
+
+  const workOrder =
+    getWorkOrderById(
+      id
+    );
+
+
+  if (
+    !workOrder
+  ) {
+
+    return;
+
+  }
+
+
+  state.selectedProjectId =
+    workOrder.projectId;
+
+
+  state.selectedWorkOrderId =
+    workOrder.id;
+
+
+  state.lastWorkOrderId =
+    workOrder.id;
+
+
+  state.browseLevel =
+    "points";
+
+
+  saveSettings();
+
+
+  renderBrowse();
+
+}
+
+
+/* ============================================================
+   POINTS
+   ============================================================ */
+
+function renderPoints() {
+
+  const project =
+    getSelectedProject();
+
+
+  const workOrder =
+    getSelectedWorkOrder();
+
+
+  const element =
+    document.getElementById(
+      "browseContent"
+    );
+
+
+  if (
+    !project ||
+    !workOrder
+  ) {
+
+    goHome();
+
+    return;
+
+  }
+
+
+  const savedPoints =
+    workOrderPoints(
+      workOrder.id
+    )
+      .slice()
+      .sort(
+        (
+          a,
+          b
+        ) =>
+          b.createdAt -
+          a.createdAt
+      );
+
+
+  const photos =
+    savedPoints.reduce(
+      (
+        sum,
+        point
+      ) =>
+        sum +
+        (
+          point.photoCount ||
+          0
+        ),
+      0
+    );
+
+
+  let html =
+    `
+      <div class="card">
+
+        <h2>
+          ${escapeHtml(workOrder.number)}
+        </h2>
+
+        <p class="subhint">
+          ${escapeHtml(workOrder.description || "Work Order")}
+        </p>
+
+
+        <div class="stats">
+
+          <div class="stat">
+            <strong>
+              ${savedPoints.length}
+            </strong>
+            <span>
+              Points
+            </span>
+          </div>
+
+          <div class="stat">
+            <strong>
+              ${photos}
+            </strong>
+            <span>
+              Photos
+            </span>
+          </div>
+
+          <div class="stat">
+            <strong>
+              ${
+                savedPoints.filter(
+                  point =>
+                    point.hydrovac
+                ).length
+              }
+            </strong>
+            <span>
+              Hydrovac
+            </span>
+          </div>
+
+        </div>
+
+
+        <button
+          class="btn btn-success"
+          style="margin-top:12px;"
+          onclick="startNewPoint()"
+        >
+          📷 New Point
+        </button>
+
+
+        <button
+          class="btn btn-primary"
+          onclick="exportWorkOrderById('${workOrder.id}')"
+        >
+          ⬇ Export Work Order
+        </button>
+
+      </div>
+    `;
+
+
+  if (
+    savedPoints.length === 0
+  ) {
+
+    html +=
+      `
+        <div class="card empty">
+          No points yet. Tap “New Point” to start taking photos.
+        </div>
+      `;
+
+  } else {
+
+    html +=
+      `
+        <div class="section-title">
+          Saved Points
+        </div>
+      `;
+
+
+    for (
+      const point of savedPoints
+    ) {
+
+      html +=
+        `
+          <div class="list-card">
+
+            <div class="list-main">
+
+              <button
+                onclick="openPointInGallery('${point.id}')"
+              >
+
+                <div class="list-title">
+                  ${escapeHtml(point.name)}
+                </div>
+
+
+                <div class="list-sub">
+
+                  ${point.photoCount || 0}
+                  photo(s)
+
+                  •
+
+                  ${escapeHtml(point.timestamp || "")}
+
+                </div>
+
+
+                <div style="margin-top:5px;">
+
+                  ${
+                    point.trafficControl
+                      ? `<span class="badge badge-orange">Traffic Control</span>`
+                      : ""
+                  }
+
+                  ${
+                    point.hydrovac
+                      ? `<span class="badge badge-purple">Hydrovac</span>`
+                      : ""
+                  }
+
+                  ${
+                    point.accessibilityIssue
+                      ? `<span class="badge badge-green">Accessibility</span>`
+                      : ""
+                  }
+
+                </div>
+
+              </button>
+
+            </div>
+
+
+            <div class="list-actions">
+
+              <button
+                class="export"
+                onclick="exportPointById('${point.id}')"
+              >
+                Export
+              </button>
+
+              <button
+                class="danger"
+                onclick="deletePoint('${point.id}')"
+              >
+                Delete
+              </button>
+
+            </div>
+
+          </div>
+        `;
+
+    }
+
+  }
+
+
+  element.innerHTML =
+    html;
+
+}
+
+
+function nextPointSuggestion() {
+
+  const workOrder =
+    getSelectedWorkOrder();
+
+
+  if (
+    !workOrder
+  ) {
+
+    return "";
+
+  }
+
+
+  const count =
+    workOrderPoints(
+      workOrder.id
+    ).length +
+    1;
+
+
+  return (
+    "Point " +
+    String(count)
+      .padStart(
+        3,
+        "0"
+      )
+  );
+
+}
+
+
+function startNewPoint() {
+
+  resetCaptureForm(
+    false
+  );
+
+
+  const suggestion =
+    nextPointSuggestion();
+
+
+  document.getElementById(
+    "pointName"
+  ).value =
+    suggestion;
+
+
+  document.getElementById(
+    "pointSuggestion"
+  ).textContent =
+    "Auto-suggested: " +
+    suggestion;
+
+
+  updateSaveButton();
+
+
+  setMainTab(
+    "capture"
+  );
+
+}
+
+
+/* ============================================================
+   CAPTURE CONTEXT
+   ============================================================ */
+
+function renderCaptureContext() {
+
+  const project =
+    getSelectedProject();
+
+
+  const workOrder =
+    getSelectedWorkOrder();
+
+
+  document.getElementById(
+    "captureNoContext"
+  ).classList.toggle(
+    "hidden",
+    !!(
+      project &&
+      workOrder
+    )
+  );
+
+
+  document.getElementById(
+    "captureContext"
+  ).classList.toggle(
+    "hidden",
+    !(
+      project &&
+      workOrder
+    )
+  );
+
+
+  if (
+    project &&
+    workOrder
+  ) {
+
+    document.getElementById(
+      "captureContextText"
+    ).innerHTML =
+      `
+        <strong>
+          ${escapeHtml(project.name)}
+        </strong>
+
+        <br>
+
+        Work Order:
+        ${escapeHtml(workOrder.number)}
+
+        ${
+          workOrder.description
+            ? `
+                <br>
+                <span class="small">
+                  ${escapeHtml(workOrder.description)}
+                </span>
+              `
+            : ""
+        }
+      `;
+
+
+    const suggestion =
+      nextPointSuggestion();
+
+
+    if (
+      !document
+        .getElementById(
+          "pointName"
+        )
+        .value
+        .trim()
+    ) {
+
+      document.getElementById(
+        "pointName"
+      ).value =
+        suggestion;
+
+    }
+
+
+    document.getElementById(
+      "pointSuggestion"
+    ).textContent =
+      "Next suggested point: " +
+      suggestion;
+
+
+    state.lastWorkOrderId =
+      workOrder.id;
+
+
+    saveSettings();
+
+
+    loadDraft();
+
+  }
+
+
+  updateBreadcrumbs();
+
+  updateSaveButton();
+
+}
+
+
+/* ============================================================
+   IMAGE HANDLING
+   ============================================================ */
+
+document.getElementById(
+  "cameraInput"
+).addEventListener(
+  "change",
+  handleFiles
+);
+
+
+document.getElementById(
+  "fileInput"
+).addEventListener(
+  "change",
+  handleFiles
+);
+
+
+async function fileToDataUrl(
   file
 ) {
 
   return new Promise(
-    (resolve, reject) => {
+    (
+      resolve,
+      reject
+    ) => {
 
       const reader =
         new FileReader();
 
 
       reader.onload =
-        (event) => {
+        event => {
 
           resolve(
             event.target.result
@@ -2154,41 +3233,44 @@ function readFileAsDataURL(
 }
 
 
-function loadImageEl(
-  src
+function loadImage(
+  source
 ) {
 
   return new Promise(
-    (resolve, reject) => {
+    (
+      resolve,
+      reject
+    ) => {
 
-      const img =
+      const image =
         new Image();
 
 
-      img.onload =
+      image.onload =
         () => {
 
           resolve(
-            img
+            image
           );
 
         };
 
 
-      img.onerror =
+      image.onerror =
         () => {
 
           reject(
             new Error(
-              "Could not load image"
+              "Image load failed"
             )
           );
 
         };
 
 
-      img.src =
-        src;
+      image.src =
+        source;
 
     }
   );
@@ -2196,41 +3278,31 @@ function loadImageEl(
 }
 
 
-/* ============================================================
-   RESIZE IMAGE
-
-   Full stored photo:
-     max 1280 px
-     JPEG quality 0.65
-
-   Thumbnail:
-     max 260 px
-     JPEG quality 0.55
-   ============================================================ */
-
-async function resizeImageDataUrl(
+async function resizeDataUrl(
   source,
   maxDimension,
   quality
 ) {
 
-  const img =
-    await loadImageEl(
+  const image =
+    await loadImage(
       source
     );
 
 
   let width =
-    img.width;
+    image.width;
 
 
   let height =
-    img.height;
+    image.height;
 
 
   if (
-    width > height &&
-    width > maxDimension
+    width >
+      height &&
+    width >
+      maxDimension
   ) {
 
     height =
@@ -2247,7 +3319,8 @@ async function resizeImageDataUrl(
       maxDimension;
 
   } else if (
-    height > maxDimension
+    height >
+      maxDimension
   ) {
 
     width =
@@ -2280,14 +3353,14 @@ async function resizeImageDataUrl(
     height;
 
 
-  const ctx =
+  const context =
     canvas.getContext(
       "2d"
     );
 
 
-  ctx.drawImage(
-    img,
+  context.drawImage(
+    image,
     0,
     0,
     width,
@@ -2303,37 +3376,29 @@ async function resizeImageDataUrl(
 }
 
 
-/* ============================================================
-   PROCESS NEW PHOTO
-
-   Creates:
-     full compressed photo
-     tiny thumbnail
-   ============================================================ */
-
-async function processPhotoFile(
+async function processPhoto(
   file
 ) {
 
   const original =
-    await readFileAsDataURL(
+    await fileToDataUrl(
       file
     );
 
 
   const full =
-    await resizeImageDataUrl(
+    await resizeDataUrl(
       original,
       1280,
-      0.65
+      .65
     );
 
 
   const thumb =
-    await resizeImageDataUrl(
+    await resizeDataUrl(
       full,
       260,
-      0.55
+      .55
     );
 
 
@@ -2345,37 +3410,14 @@ async function processPhotoFile(
 }
 
 
-/* ============================================================
-   CAPTURE
-   ============================================================ */
-
-document
-  .getElementById(
-    "cameraInput"
-  )
-  .addEventListener(
-    "change",
-    handleFiles
-  );
-
-
-document
-  .getElementById(
-    "fileInput"
-  )
-  .addEventListener(
-    "change",
-    handleFiles
-  );
-
-
 async function handleFiles(
   event
 ) {
 
   const files =
     Array.from(
-      event.target.files || []
+      event.target.files ||
+      []
     );
 
 
@@ -2384,7 +3426,7 @@ async function handleFiles(
 
 
   if (
-    files.length === 0
+    !files.length
   ) {
 
     return;
@@ -2393,7 +3435,6 @@ async function handleFiles(
 
 
   if (
-    stagedImages.length === 0 &&
     !stagedGps
   ) {
 
@@ -2412,25 +3453,24 @@ async function handleFiles(
 
       showToast(
         "Processing photo…",
-        null,
         true
       );
 
 
       const photo =
-        await processPhotoFile(
+        await processPhoto(
           file
         );
 
 
-      stagedImages.push(
+      stagedPhotos.push(
         photo
       );
 
 
-      renderThumbs();
+      renderStagedPhotos();
 
-      updateSaveBtn();
+      updateSaveButton();
 
       await saveDraftNow();
 
@@ -2439,24 +3479,24 @@ async function handleFiles(
 
 
       showToast(
-        `Photo added (${stagedImages.length} total)`,
-        photo.thumb
+        `Photo added (${stagedPhotos.length})`
       );
 
 
-    } catch (err) {
+    } catch (
+      error
+    ) {
 
       hideToast();
 
 
       console.error(
-        "Image processing failed",
-        err
+        error
       );
 
 
       alert(
-        "One of the photos could not be processed. Please try again."
+        "One of the photos could not be processed."
       );
 
     }
@@ -2467,10 +3507,10 @@ async function handleFiles(
 
 
 /* ============================================================
-   STAGED THUMBNAILS
+   STAGED PHOTOS
    ============================================================ */
 
-function renderThumbs() {
+function renderStagedPhotos() {
 
   const grid =
     document.getElementById(
@@ -2479,53 +3519,41 @@ function renderThumbs() {
 
 
   document.getElementById(
-    "clearAllBtn"
+    "clearPhotosBtn"
   ).style.display =
-    stagedImages.length > 0
+    stagedPhotos.length
       ? "block"
       : "none";
 
 
-  if (
-    stagedImages.length === 0
-  ) {
-
-    grid.innerHTML =
-      "";
-
-    return;
-
-  }
-
-
   grid.innerHTML =
-    stagedImages
+    stagedPhotos
       .map(
-        (photo, i) => `
+        (
+          photo,
+          index
+        ) =>
+          `
+            <div class="thumb-wrap">
 
-          <div class="thumb-wrap">
+              <img
+                src="${photo.thumb}"
+                alt=""
+              >
 
-            <img
-              src="${photo.thumb}"
-              alt="photo ${i + 1}"
-            >
+              <button
+                class="thumb-remove"
+                onclick="removeStaged(${index})"
+              >
+                ✕
+              </button>
 
-            <button
-              class="thumb-remove"
-              onclick="removeStaged(${i})"
-            >
-              ✕
-            </button>
+              <span class="thumb-count">
+                ${index + 1}
+              </span>
 
-            <span
-              class="thumb-count-badge"
-            >
-              ${i + 1}
-            </span>
-
-          </div>
-
-        `
+            </div>
+          `
       )
       .join("");
 
@@ -2536,15 +3564,15 @@ async function removeStaged(
   index
 ) {
 
-  stagedImages.splice(
+  stagedPhotos.splice(
     index,
     1
   );
 
 
-  renderThumbs();
+  renderStagedPhotos();
 
-  updateSaveBtn();
+  updateSaveButton();
 
   await saveDraftNow();
 
@@ -2554,9 +3582,9 @@ async function removeStaged(
 async function clearStaged() {
 
   if (
-    stagedImages.length > 0 &&
+    stagedPhotos.length &&
     !confirm(
-      "Remove all photos from this point?"
+      "Remove all unsaved photos from this point?"
     )
   ) {
 
@@ -2565,7 +3593,7 @@ async function clearStaged() {
   }
 
 
-  stagedImages =
+  stagedPhotos =
     [];
 
 
@@ -2573,11 +3601,11 @@ async function clearStaged() {
     null;
 
 
-  renderThumbs();
+  renderStagedPhotos();
 
   updateGpsStatus();
 
-  updateSaveBtn();
+  updateSaveButton();
 
   await saveDraftNow();
 
@@ -2585,39 +3613,153 @@ async function clearStaged() {
 
 
 /* ============================================================
-   SAVE BUTTON
+   GPS
    ============================================================ */
 
-function updateSaveBtn() {
+function requestLocation(
+  manual
+) {
 
-  const projectId =
+  if (
+    !navigator.geolocation
+  ) {
+
+    if (
+      manual
+    ) {
+
+      alert(
+        "Location is not supported on this device."
+      );
+
+    }
+
+
+    return;
+
+  }
+
+
+  document.getElementById(
+    "gpsStatusText"
+  ).textContent =
+    "📍 Getting location…";
+
+
+  navigator.geolocation.getCurrentPosition(
+
+    position => {
+
+      stagedGps = {
+
+        lat:
+          position.coords.latitude,
+
+        lng:
+          position.coords.longitude,
+
+        accuracy:
+          position.coords.accuracy
+
+      };
+
+
+      updateGpsStatus();
+
+      scheduleDraftSave();
+
+    },
+
+
+    error => {
+
+      document.getElementById(
+        "gpsStatusText"
+      ).textContent =
+        "📍 Location unavailable";
+
+
+      if (
+        manual
+      ) {
+
+        showToast(
+          "Location unavailable"
+        );
+
+      }
+
+    },
+
+
+    {
+
+      enableHighAccuracy:
+        true,
+
+      timeout:
+        15000,
+
+      maximumAge:
+        60000
+
+    }
+
+  );
+
+}
+
+
+function updateGpsStatus() {
+
+  const element =
+    document.getElementById(
+      "gpsStatusText"
+    );
+
+
+  if (
+    stagedGps
+  ) {
+
+    element.textContent =
+      `📍 ${stagedGps.lat.toFixed(6)}, ${stagedGps.lng.toFixed(6)} (±${Math.round(stagedGps.accuracy)}m)`;
+
+  } else {
+
+    element.textContent =
+      "📍 No location captured yet";
+
+  }
+
+}
+
+
+/* ============================================================
+   DRAFT
+   ============================================================ */
+
+function updateSaveButton() {
+
+  const name =
     document
       .getElementById(
-        "projectId"
+        "pointName"
       )
       .value
       .trim();
 
 
   document.getElementById(
-    "saveBtn"
+    "savePointBtn"
   ).disabled =
     !(
-      stagedImages.length > 0 &&
-      projectId
+      name &&
+      stagedPhotos.length &&
+      getSelectedWorkOrder()
     );
 
 }
-
-
-/* ============================================================
-   DRAFT STORAGE — INDEXEDDB
-
-   Unsaved photos are no longer put into localStorage.
-   ============================================================ */
-
-let draftTimer =
-  null;
 
 
 function scheduleDraftSave() {
@@ -2629,11 +3771,7 @@ function scheduleDraftSave() {
 
   draftTimer =
     setTimeout(
-      () => {
-
-        saveDraftNow();
-
-      },
+      saveDraftNow,
       300
     );
 
@@ -2642,50 +3780,59 @@ function scheduleDraftSave() {
 
 async function saveDraftNow() {
 
+  const workOrder =
+    getSelectedWorkOrder();
+
+
+  if (
+    !workOrder
+  ) {
+
+    return;
+
+  }
+
+
   const draft = {
 
     id:
-      CURRENT_DRAFT_ID,
+      "current",
 
     projectId:
-      document
-        .getElementById(
-          "projectId"
-        )
-        .value,
+      workOrder.projectId,
+
+    workOrderId:
+      workOrder.id,
+
+    pointName:
+      document.getElementById(
+        "pointName"
+      ).value,
 
     trafficControl:
-      document
-        .getElementById(
-          "trafficControl"
-        )
-        .checked,
+      document.getElementById(
+        "trafficControl"
+      ).checked,
 
     hydrovac:
-      document
-        .getElementById(
-          "hydrovac"
-        )
-        .checked,
+      document.getElementById(
+        "hydrovac"
+      ).checked,
 
     accessibilityIssue:
-      document
-        .getElementById(
-          "accessibilityIssue"
-        )
-        .checked,
+      document.getElementById(
+        "accessibilityIssue"
+      ).checked,
 
     notes:
-      document
-        .getElementById(
-          "notes"
-        )
-        .value,
+      document.getElementById(
+        "notes"
+      ).value,
 
-    stagedImages:
-      stagedImages,
+    photos:
+      stagedPhotos,
 
-    stagedGps:
+    gps:
       stagedGps,
 
     updatedAt:
@@ -2695,39 +3842,28 @@ async function saveDraftNow() {
 
 
   const hasContent =
-    draft.projectId ||
+    draft.pointName ||
     draft.notes ||
     draft.trafficControl ||
     draft.hydrovac ||
     draft.accessibilityIssue ||
-    stagedImages.length > 0;
+    draft.photos.length;
 
 
-  try {
+  if (
+    hasContent
+  ) {
 
-    if (
-      hasContent
-    ) {
+    await putOne(
+      STORE_DRAFT,
+      draft
+    );
 
-      await dbPut(
-        DRAFT_STORE,
-        draft
-      );
+  } else {
 
-    } else {
-
-      await dbDelete(
-        DRAFT_STORE,
-        CURRENT_DRAFT_ID
-      );
-
-    }
-
-  } catch (err) {
-
-    console.error(
-      "Draft save failed",
-      err
+    await deleteOneRecord(
+      STORE_DRAFT,
+      "current"
     );
 
   }
@@ -2737,138 +3873,155 @@ async function saveDraftNow() {
 
 async function loadDraft() {
 
-  try {
-
-    const draft =
-      await dbGet(
-        DRAFT_STORE,
-        CURRENT_DRAFT_ID
-      );
+  const workOrder =
+    getSelectedWorkOrder();
 
 
-    if (
-      !draft
-    ) {
+  if (
+    !workOrder
+  ) {
 
-      return;
+    return;
 
-    }
-
-
-    document.getElementById(
-      "projectId"
-    ).value =
-      draft.projectId || "";
+  }
 
 
-    document.getElementById(
-      "trafficControl"
-    ).checked =
-      !!draft.trafficControl;
+  const draft =
+    await getOne(
+      STORE_DRAFT,
+      "current"
+    );
 
 
-    document.getElementById(
-      "hydrovac"
-    ).checked =
-      !!draft.hydrovac;
+  if (
+    !draft
+  ) {
+
+    return;
+
+  }
 
 
-    document.getElementById(
-      "accessibilityIssue"
-    ).checked =
-      !!draft.accessibilityIssue;
+  if (
+    draft.workOrderId !==
+    workOrder.id
+  ) {
+
+    return;
+
+  }
 
 
-    document.getElementById(
-      "notes"
-    ).value =
-      draft.notes || "";
+  document.getElementById(
+    "pointName"
+  ).value =
+    draft.pointName ||
+    nextPointSuggestion();
 
 
-    stagedImages =
-      Array.isArray(
-        draft.stagedImages
-      )
-        ? draft.stagedImages
-        : [];
+  document.getElementById(
+    "trafficControl"
+  ).checked =
+    !!draft.trafficControl;
 
 
-    /*
-      Compatibility for drafts created by your
-      old version where stagedImages was simply
-      an array of image strings.
-    */
-
-    if (
-      stagedImages.length > 0 &&
-      typeof stagedImages[0] === "string"
-    ) {
-
-      const converted =
-        [];
+  document.getElementById(
+    "hydrovac"
+  ).checked =
+    !!draft.hydrovac;
 
 
-      for (
-        const oldImage of stagedImages
-      ) {
-
-        try {
-
-          const thumb =
-            await resizeImageDataUrl(
-              oldImage,
-              260,
-              0.55
-            );
+  document.getElementById(
+    "accessibilityIssue"
+  ).checked =
+    !!draft.accessibilityIssue;
 
 
-          converted.push({
-
-            full:
-              oldImage,
-
-            thumb
-
-          });
-
-        } catch (e) {
-
-          console.error(
-            "Old draft photo conversion failed",
-            e
-          );
-
-        }
-
-      }
+  document.getElementById(
+    "notes"
+  ).value =
+    draft.notes ||
+    "";
 
 
-      stagedImages =
-        converted;
+  stagedPhotos =
+    Array.isArray(
+      draft.photos
+    )
+      ? draft.photos
+      : [];
 
 
-      await saveDraftNow();
-
-    }
-
-
-    stagedGps =
-      draft.stagedGps ||
-      null;
+  stagedGps =
+    draft.gps ||
+    null;
 
 
-    renderThumbs();
+  renderStagedPhotos();
 
-    updateGpsStatus();
+  updateGpsStatus();
 
-    updateSaveBtn();
+  updateSaveButton();
+
+}
 
 
-  } catch (err) {
+function resetCaptureForm(
+  clearDraftToo = true
+) {
 
-    console.error(
-      "Draft restore failed",
-      err
+  stagedPhotos =
+    [];
+
+
+  stagedGps =
+    null;
+
+
+  document.getElementById(
+    "pointName"
+  ).value =
+    "";
+
+
+  document.getElementById(
+    "trafficControl"
+  ).checked =
+    false;
+
+
+  document.getElementById(
+    "hydrovac"
+  ).checked =
+    false;
+
+
+  document.getElementById(
+    "accessibilityIssue"
+  ).checked =
+    false;
+
+
+  document.getElementById(
+    "notes"
+  ).value =
+    "";
+
+
+  renderStagedPhotos();
+
+  updateGpsStatus();
+
+  updateSaveButton();
+
+
+  if (
+    clearDraftToo
+  ) {
+
+    deleteOneRecord(
+      STORE_DRAFT,
+      "current"
     );
 
   }
@@ -2876,51 +4029,25 @@ async function loadDraft() {
 }
 
 
-async function clearDraft() {
+document.getElementById(
+  "pointName"
+).addEventListener(
+  "input",
+  () => {
 
-  try {
+    updateSaveButton();
 
-    await dbDelete(
-      DRAFT_STORE,
-      CURRENT_DRAFT_ID
-    );
-
-  } catch (err) {
-
-    console.error(
-      "Draft delete failed",
-      err
-    );
+    scheduleDraftSave();
 
   }
+);
 
-}
 
-
-/* ============================================================
-   INPUT EVENTS
-   ============================================================ */
-
-[
-  "projectId",
+document.getElementById(
   "notes"
-].forEach(
-  id => {
-
-    document
-      .getElementById(id)
-      .addEventListener(
-        "input",
-        () => {
-
-          updateSaveBtn();
-
-          scheduleDraftSave();
-
-        }
-      );
-
-  }
+).addEventListener(
+  "input",
+  scheduleDraftSave
 );
 
 
@@ -2932,7 +4059,9 @@ async function clearDraft() {
   id => {
 
     document
-      .getElementById(id)
+      .getElementById(
+        id
+      )
       .addEventListener(
         "change",
         scheduleDraftSave
@@ -2948,22 +4077,32 @@ async function clearDraft() {
 
 async function savePoint() {
 
-  const projectId =
+  const project =
+    getSelectedProject();
+
+
+  const workOrder =
+    getSelectedWorkOrder();
+
+
+  const name =
     document
       .getElementById(
-        "projectId"
+        "pointName"
       )
       .value
       .trim();
 
 
   if (
-    stagedImages.length === 0 ||
-    !projectId
+    !project ||
+    !workOrder ||
+    !name ||
+    !stagedPhotos.length
   ) {
 
     alert(
-      "Please add at least one photo and enter a project ID."
+      "Select a project/work order, enter a point name, and add at least one photo."
     );
 
     return;
@@ -2971,46 +4110,57 @@ async function savePoint() {
   }
 
 
-  const id =
-    Date.now();
-
-
   const point = {
 
-    id,
+    id:
+      makeId(
+        "point"
+      ),
 
-    projectId,
+    projectId:
+      project.id,
+
+    workOrderId:
+      workOrder.id,
+
+    name,
 
     trafficControl:
-      document
-        .getElementById(
-          "trafficControl"
-        )
-        .checked,
+      document.getElementById(
+        "trafficControl"
+      ).checked,
 
     hydrovac:
-      document
-        .getElementById(
-          "hydrovac"
-        )
-        .checked,
+      document.getElementById(
+        "hydrovac"
+      ).checked,
 
     accessibilityIssue:
-      document
-        .getElementById(
-          "accessibilityIssue"
-        )
-        .checked,
+      document.getElementById(
+        "accessibilityIssue"
+      ).checked,
 
     gps:
       stagedGps,
 
     notes:
-      document
-        .getElementById(
-          "notes"
+      document.getElementById(
+        "notes"
+      ).value,
+
+    photoCount:
+      stagedPhotos.length,
+
+    previewThumbs:
+      stagedPhotos
+        .slice(
+          0,
+          3
         )
-        .value,
+        .map(
+          photo =>
+            photo.thumb
+        ),
 
     timestamp:
       new Date()
@@ -3022,133 +4172,183 @@ async function savePoint() {
   };
 
 
-  const photosToSave =
-    stagedImages.slice();
+  const db =
+    await openDB();
 
 
   try {
 
     showToast(
-      `Saving ${photosToSave.length} photo(s)…`,
-      null,
+      `Saving ${stagedPhotos.length} photo(s)…`,
       true
     );
 
 
-    const metadata =
-      await dbSavePoint(
-        point,
-        photosToSave
-      );
+    await new Promise(
+      (
+        resolve,
+        reject
+      ) => {
+
+        const transaction =
+          db.transaction(
+            [
+              STORE_POINTS,
+              STORE_PHOTOS
+            ],
+            "readwrite"
+          );
 
 
-    points.unshift(
-      metadata
+        transaction
+          .objectStore(
+            STORE_POINTS
+          )
+          .put(
+            point
+          );
+
+
+        stagedPhotos.forEach(
+          (
+            photo,
+            index
+          ) => {
+
+            transaction
+              .objectStore(
+                STORE_PHOTOS
+              )
+              .put(
+                {
+
+                  id:
+                    makeId(
+                      "photo"
+                    ),
+
+                  projectId:
+                    project.id,
+
+                  workOrderId:
+                    workOrder.id,
+
+                  pointId:
+                    point.id,
+
+                  index,
+
+                  imageData:
+                    photo.full
+
+                }
+              );
+
+          }
+        );
+
+
+        transaction.oncomplete =
+          () => {
+
+            resolve();
+
+          };
+
+
+        transaction.onerror =
+          () => {
+
+            reject(
+              transaction.error
+            );
+
+          };
+
+
+        transaction.onabort =
+          () => {
+
+            reject(
+              transaction.error
+            );
+
+          };
+
+      }
     );
 
 
-    await clearDraft();
+    points.unshift(
+      point
+    );
 
 
-    stagedImages =
-      [];
+    state.lastWorkOrderId =
+      workOrder.id;
 
 
-    stagedGps =
-      null;
+    await saveSettings();
+
+
+    await deleteOneRecord(
+      STORE_DRAFT,
+      "current"
+    );
+
+
+    resetCaptureForm(
+      false
+    );
 
 
     document.getElementById(
-      "projectId"
+      "pointName"
     ).value =
-      "";
+      nextPointSuggestion();
 
 
     document.getElementById(
-      "trafficControl"
-    ).checked =
-      false;
-
-
-    document.getElementById(
-      "hydrovac"
-    ).checked =
-      false;
-
-
-    document.getElementById(
-      "accessibilityIssue"
-    ).checked =
-      false;
-
-
-    document.getElementById(
-      "notes"
-    ).value =
-      "";
-
-
-    renderThumbs();
-
-    updateGpsStatus();
-
-    updateSaveBtn();
-
-    updatePointCount();
-
-
-    lastSavedPointId =
-      id;
-
-
-    document.getElementById(
-      "searchProject"
-    ).value =
-      "";
-
-
-    document.getElementById(
-      "searchTerm"
-    ).value =
-      "";
-
-
-    galleryRenderLimit =
-      GALLERY_PAGE_SIZE;
+      "pointSuggestion"
+    ).textContent =
+      "Next suggested point: " +
+      nextPointSuggestion();
 
 
     hideToast();
 
 
-    goTo(
-      "gallery"
-    );
-
-
     showToast(
-      `Saved ${metadata.photoCount} photo(s) to ${metadata.projectId}`,
-      metadata.previewThumbs?.[0] || null
+      `Saved ${point.photoCount} photo(s) to ${point.name}`
     );
 
 
-    checkStorageEstimate();
+    state.browseLevel =
+      "points";
 
 
-  } catch (err) {
+    setMainTab(
+      "browse"
+    );
+
+
+    checkStorage();
+
+
+  } catch (
+    error
+  ) {
 
     hideToast();
 
 
     console.error(
-      "Save failed",
-      err
+      error
     );
 
 
     alert(
-      "This point could not be saved.\n\n" +
-      "Your browser or device may be running low on storage.\n\n" +
-      "Export older photos and delete them from the app to free space."
+      "Could not save this point. Device/browser storage may be full."
     );
 
   }
@@ -3157,13 +4357,151 @@ async function savePoint() {
 
 
 /* ============================================================
-   COUNT PHOTOS
+   PHOTO LOOKUP
    ============================================================ */
 
-function updatePointCount() {
+async function getPhotosForPoint(
+  pointId
+) {
 
-  const total =
-    points.reduce(
+  const photos =
+    await getByIndex(
+      STORE_PHOTOS,
+      "pointId",
+      pointId
+    );
+
+
+  photos.sort(
+    (
+      a,
+      b
+    ) =>
+      a.index -
+      b.index
+  );
+
+
+  return photos;
+
+}
+
+
+/* ============================================================
+   DELETE
+   ============================================================ */
+
+async function deletePoint(
+  pointId
+) {
+
+  const point =
+    points.find(
+      item =>
+        item.id ===
+        pointId
+    );
+
+
+  if (
+    !point
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    !confirm(
+      `Delete ${point.name} and all ${point.photoCount || 0} photos?`
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  const photos =
+    await getPhotosForPoint(
+      pointId
+    );
+
+
+  for (
+    const photo of photos
+  ) {
+
+    await deleteOneRecord(
+      STORE_PHOTOS,
+      photo.id
+    );
+
+  }
+
+
+  await deleteOneRecord(
+    STORE_POINTS,
+    pointId
+  );
+
+
+  points =
+    points.filter(
+      item =>
+        item.id !==
+        pointId
+    );
+
+
+  renderBrowse();
+
+
+  if (
+    state.mainTab ===
+    "gallery"
+  ) {
+
+    renderGallery();
+
+  }
+
+
+  showToast(
+    "Point deleted"
+  );
+
+}
+
+
+async function deleteWorkOrder(
+  workOrderId
+) {
+
+  const workOrder =
+    getWorkOrderById(
+      workOrderId
+    );
+
+
+  if (
+    !workOrder
+  ) {
+
+    return;
+
+  }
+
+
+  const savedPoints =
+    workOrderPoints(
+      workOrderId
+    );
+
+
+  const totalPhotos =
+    savedPoints.reduce(
       (
         sum,
         point
@@ -3177,139 +4515,338 @@ function updatePointCount() {
     );
 
 
-  document.getElementById(
-    "photoCount"
-  ).textContent =
-    total;
+  if (
+    !confirm(
+      `Delete work order ${workOrder.number}, ${savedPoints.length} point(s), and ${totalPhotos} photo(s)?`
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  for (
+    const point of savedPoints
+  ) {
+
+    const photos =
+      await getPhotosForPoint(
+        point.id
+      );
+
+
+    for (
+      const photo of photos
+    ) {
+
+      await deleteOneRecord(
+        STORE_PHOTOS,
+        photo.id
+      );
+
+    }
+
+
+    await deleteOneRecord(
+      STORE_POINTS,
+      point.id
+    );
+
+  }
+
+
+  await deleteOneRecord(
+    STORE_WORKORDERS,
+    workOrderId
+  );
+
+
+  points =
+    points.filter(
+      point =>
+        point.workOrderId !==
+        workOrderId
+    );
+
+
+  workOrders =
+    workOrders.filter(
+      item =>
+        item.id !==
+        workOrderId
+    );
+
+
+  if (
+    state.lastWorkOrderId ===
+    workOrderId
+  ) {
+
+    state.lastWorkOrderId =
+      null;
+
+
+    await putOne(
+      STORE_SETTINGS,
+      {
+
+        id:
+          "app",
+
+        lastProjectId:
+          null,
+
+        lastWorkOrderId:
+          null
+
+      }
+    );
+
+  }
+
+
+  renderBrowse();
+
+
+  showToast(
+    "Work order deleted"
+  );
+
+}
+
+
+async function deleteProject(
+  projectId
+) {
+
+  const project =
+    getProjectById(
+      projectId
+    );
+
+
+  if (
+    !project
+  ) {
+
+    return;
+
+  }
+
+
+  const workOrderList =
+    projectWorkOrders(
+      projectId
+    );
+
+
+  const projectPoints =
+    points.filter(
+      point =>
+        point.projectId ===
+        projectId
+    );
+
+
+  const totalPhotos =
+    projectPoints.reduce(
+      (
+        sum,
+        point
+      ) =>
+        sum +
+        (
+          point.photoCount ||
+          0
+        ),
+      0
+    );
+
+
+  if (
+    !confirm(
+      `Delete project ${project.name}, ${workOrderList.length} work order(s), ${projectPoints.length} point(s), and ${totalPhotos} photo(s)?`
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  for (
+    const point of projectPoints
+  ) {
+
+    const photos =
+      await getPhotosForPoint(
+        point.id
+      );
+
+
+    for (
+      const photo of photos
+    ) {
+
+      await deleteOneRecord(
+        STORE_PHOTOS,
+        photo.id
+      );
+
+    }
+
+
+    await deleteOneRecord(
+      STORE_POINTS,
+      point.id
+    );
+
+  }
+
+
+  for (
+    const workOrder of
+    workOrderList
+  ) {
+
+    await deleteOneRecord(
+      STORE_WORKORDERS,
+      workOrder.id
+    );
+
+  }
+
+
+  await deleteOneRecord(
+    STORE_PROJECTS,
+    projectId
+  );
+
+
+  points =
+    points.filter(
+      point =>
+        point.projectId !==
+        projectId
+    );
+
+
+  workOrders =
+    workOrders.filter(
+      workOrder =>
+        workOrder.projectId !==
+        projectId
+    );
+
+
+  projects =
+    projects.filter(
+      item =>
+        item.id !==
+        projectId
+    );
+
+
+  renderBrowse();
+
+
+  showToast(
+    "Project deleted"
+  );
 
 }
 
 
 /* ============================================================
-   SEARCH
+   GALLERY FILTERS
    ============================================================ */
 
-function matchesSearch(
-  point,
-  searchProject,
-  searchTerm
-) {
+function setupGalleryFilters() {
 
-  const project =
-    (
-      point.projectId ||
-      ""
-    )
-      .toLowerCase();
-
-
-  const notes =
-    (
-      point.notes ||
-      ""
-    )
-      .toLowerCase();
-
-
-  const matchesProject =
-    !searchProject ||
-    project.includes(
-      searchProject
+  const projectSelect =
+    document.getElementById(
+      "galleryProjectFilter"
     );
 
 
-  let matchesTerm =
-    true;
+  const previous =
+    projectSelect.value;
+
+
+  projectSelect.innerHTML =
+    `
+      <option value="">
+        All Projects
+      </option>
+    ` +
+    projects
+      .slice()
+      .sort(
+        (
+          a,
+          b
+        ) =>
+          a.name.localeCompare(
+            b.name
+          )
+      )
+      .map(
+        project =>
+          `
+            <option value="${project.id}">
+              ${escapeHtml(project.name)}
+            </option>
+          `
+      )
+      .join("");
 
 
   if (
-    searchTerm
+    state.selectedProjectId &&
+    projects.some(
+      project =>
+        project.id ===
+        state.selectedProjectId
+    )
   ) {
 
-    if (
-      searchTerm ===
-      "traffic control"
-    ) {
+    projectSelect.value =
+      state.selectedProjectId;
 
-      matchesTerm =
-        !!point.trafficControl;
+  } else if (
+    previous &&
+    projects.some(
+      project =>
+        project.id ===
+        previous
+    )
+  ) {
 
-    } else if (
-      searchTerm ===
-      "hydrovac"
-    ) {
-
-      matchesTerm =
-        !!point.hydrovac;
-
-    } else if (
-      searchTerm ===
-        "accessibility issue" ||
-      searchTerm ===
-        "accessibility"
-    ) {
-
-      matchesTerm =
-        !!point.accessibilityIssue;
-
-    } else {
-
-      matchesTerm =
-        notes.includes(
-          searchTerm
-        );
-
-    }
+    projectSelect.value =
+      previous;
 
   }
 
 
-  return (
-    matchesProject &&
-    matchesTerm
-  );
-
-}
+  refreshGalleryWorkOrders();
 
 
-function getFilteredPoints() {
+  if (
+    state.selectedWorkOrderId &&
+    workOrders.some(
+      workOrder =>
+        workOrder.id ===
+        state.selectedWorkOrderId
+    )
+  ) {
 
-  const searchProject =
-    document
-      .getElementById(
-        "searchProject"
-      )
-      .value
-      .trim()
-      .toLowerCase();
+    document.getElementById(
+      "galleryWorkOrderFilter"
+    ).value =
+      state.selectedWorkOrderId;
 
-
-  const searchTerm =
-    document
-      .getElementById(
-        "searchTerm"
-      )
-      .value
-      .trim()
-      .toLowerCase();
-
-
-  return points.filter(
-    point =>
-      matchesSearch(
-        point,
-        searchProject,
-        searchTerm
-      )
-  );
-
-}
-
-
-function onSearchChange() {
-
-  galleryRenderLimit =
-    GALLERY_PAGE_SIZE;
+  }
 
 
   renderGallery();
@@ -3317,13 +4854,170 @@ function onSearchChange() {
 }
 
 
-function loadMoreResults() {
+function refreshGalleryWorkOrders() {
 
-  galleryRenderLimit +=
-    GALLERY_PAGE_SIZE;
+  const projectId =
+    document.getElementById(
+      "galleryProjectFilter"
+    ).value;
 
+
+  const workOrderSelect =
+    document.getElementById(
+      "galleryWorkOrderFilter"
+    );
+
+
+  const list =
+    projectId
+      ? projectWorkOrders(
+          projectId
+        )
+      : workOrders;
+
+
+  workOrderSelect.innerHTML =
+    `
+      <option value="">
+        All Work Orders
+      </option>
+    ` +
+    list
+      .slice()
+      .sort(
+        (
+          a,
+          b
+        ) =>
+          a.number.localeCompare(
+            b.number
+          )
+      )
+      .map(
+        workOrder =>
+          `
+            <option value="${workOrder.id}">
+              ${escapeHtml(workOrder.number)}
+            </option>
+          `
+      )
+      .join("");
+
+}
+
+
+function galleryFilterChanged() {
+
+  refreshGalleryWorkOrders();
 
   renderGallery();
+
+}
+
+
+function getFilteredGalleryPoints() {
+
+  const projectId =
+    document.getElementById(
+      "galleryProjectFilter"
+    ).value;
+
+
+  const workOrderId =
+    document.getElementById(
+      "galleryWorkOrderFilter"
+    ).value;
+
+
+  const search =
+    document
+      .getElementById(
+        "gallerySearch"
+      )
+      .value
+      .trim()
+      .toLowerCase();
+
+
+  return points
+    .filter(
+      point => {
+
+        if (
+          projectId &&
+          point.projectId !==
+          projectId
+        ) {
+
+          return false;
+
+        }
+
+
+        if (
+          workOrderId &&
+          point.workOrderId !==
+          workOrderId
+        ) {
+
+          return false;
+
+        }
+
+
+        if (
+          search
+        ) {
+
+          const searchable =
+            [
+
+              point.name,
+
+              point.notes,
+
+              point.trafficControl
+                ? "traffic control"
+                : "",
+
+              point.hydrovac
+                ? "hydrovac"
+                : "",
+
+              point.accessibilityIssue
+                ? "accessibility"
+                : ""
+
+            ]
+              .join(" ")
+              .toLowerCase();
+
+
+          if (
+            !searchable.includes(
+              search
+            )
+          ) {
+
+            return false;
+
+          }
+
+        }
+
+
+        return true;
+
+      }
+    )
+    .sort(
+      (
+        a,
+        b
+      ) =>
+        b.createdAt -
+        a.createdAt
+    );
 
 }
 
@@ -3334,283 +5028,121 @@ function loadMoreResults() {
 
 function renderGallery() {
 
-  const filtered =
-    getFilteredPoints();
-
-
-  const exportShownBtn =
+  const element =
     document.getElementById(
-      "exportShownBtn"
+      "galleryContent"
     );
-
-
-  const exportAllBtn =
-    document.getElementById(
-      "exportAllBtn"
-    );
-
-
-  const shownPhotoCount =
-    filtered.reduce(
-      (
-        sum,
-        point
-      ) =>
-        sum +
-        (
-          point.photoCount ||
-          0
-        ),
-      0
-    );
-
-
-  exportShownBtn.textContent =
-    `⬇ Export Shown (${shownPhotoCount})`;
-
-
-  exportShownBtn.disabled =
-    filtered.length === 0;
-
-
-  if (
-    filtered.length !==
-    points.length
-  ) {
-
-    const totalPhotos =
-      points.reduce(
-        (
-          sum,
-          point
-        ) =>
-          sum +
-          (
-            point.photoCount ||
-            0
-          ),
-        0
-      );
-
-
-    exportAllBtn.style.display =
-      "block";
-
-
-    exportAllBtn.textContent =
-      `⬇ Export All (${totalPhotos})`;
-
-  } else {
-
-    exportAllBtn.style.display =
-      "none";
-
-  }
 
 
   const list =
-    document.getElementById(
-      "galleryList"
-    );
-
-
-  const loadMoreBtn =
-    document.getElementById(
-      "loadMoreBtn"
-    );
+    getFilteredGalleryPoints();
 
 
   if (
-    filtered.length === 0
+    !list.length
   ) {
 
-    list.innerHTML =
-      `<div class="card empty-state">${
-        points.length === 0
-          ? "No points yet. Capture your first photos!"
-          : "No points match your search."
-      }</div>`;
-
-
-    loadMoreBtn.style.display =
-      "none";
-
+    element.innerHTML =
+      `
+        <div class="card empty">
+          No points match the current filters.
+        </div>
+      `;
 
     return;
 
   }
 
 
-  const visible =
-    filtered.slice(
-      0,
-      galleryRenderLimit
-    );
-
-
-  list.innerHTML =
-    visible
+  element.innerHTML =
+    list
       .map(
         point => {
 
-          const thumbs =
-            point.previewThumbs ||
-            [];
-
-
-          const count =
-            point.photoCount ||
-            0;
-
-
-          const showCount =
-            Math.min(
-              thumbs.length,
-              3
+          const project =
+            getProjectById(
+              point.projectId
             );
 
 
-          const gridClass =
-            count === 1
-              ? "point-photos single"
-              : "point-photos";
-
-
-          let photosHtml =
-            "";
-
-
-          for (
-            let i = 0;
-            i < showCount;
-            i++
-          ) {
-
-            const showOverlay =
-              i === 2 &&
-              count > 3;
-
-
-            if (
-              showOverlay
-            ) {
-
-              photosHtml += `
-
-                <div
-                  class="more-overlay"
-                  data-count="+${count - 2}"
-                >
-
-                  <img
-                    src="${thumbs[i]}"
-                    alt=""
-                  >
-
-                </div>
-
-              `;
-
-            } else {
-
-              photosHtml += `
-
-                <img
-                  src="${thumbs[i]}"
-                  alt=""
-                >
-
-              `;
-
-            }
-
-          }
-
-
-          if (
-            showCount === 0 &&
-            count > 0
-          ) {
-
-            photosHtml = `
-
-              <div
-                style="
-                  grid-column:1/-1;
-                  padding:35px;
-                  text-align:center;
-                  background:#f9fafb;
-                  color:#9ca3af;
-                  font-size:12px;
-                "
-              >
-                ${count} saved photo${count === 1 ? "" : "s"}
-              </div>
-
-            `;
-
-          }
+          const workOrder =
+            getWorkOrderById(
+              point.workOrderId
+            );
 
 
           return `
+            <div class="list-card">
 
-            <div
-              class="point-card${
-                point.id ===
-                lastSavedPointId
-                  ? " just-saved"
-                  : ""
-              }"
-              id="point-${point.id}"
-            >
+              <div class="gallery-photos">
 
-              <div
-                class="${gridClass}"
-              >
-                ${photosHtml}
+                ${
+                  (
+                    point.previewThumbs ||
+                    []
+                  )
+                    .map(
+                      thumbnail =>
+                        `
+                          <img
+                            src="${thumbnail}"
+                            alt=""
+                          >
+                        `
+                    )
+                    .join("")
+                }
+
               </div>
 
 
-              <div class="photo-info">
+              <div class="point-info">
 
-                <span
-                  class="project-badge"
-                >
-                  ${escapeHtml(point.projectId)}
-                </span>
+                <div class="list-title">
+                  ${escapeHtml(point.name)}
+                </div>
 
 
-                <span
-                  class="photo-count-label"
-                >
-                  ${count}
-                  photo${count !== 1 ? "s" : ""}
-                </span>
+                <div class="list-sub">
+
+                  ${escapeHtml(project?.name || "")}
+
+                  •
+
+                  WO
+                  ${escapeHtml(workOrder?.number || "")}
+
+                  •
+
+                  ${point.photoCount || 0}
+                  photo(s)
+
+                </div>
 
 
-                <div>
+                <div style="margin-top:7px;">
 
                   ${
                     point.trafficControl
-                      ? `<span class="tag-badge tag-traffic">✓ Traffic Control</span>`
+                      ? `<span class="badge badge-orange">Traffic Control</span>`
                       : ""
                   }
 
                   ${
                     point.hydrovac
-                      ? `<span class="tag-badge tag-hydro">✓ Hydrovac</span>`
+                      ? `<span class="badge badge-purple">Hydrovac</span>`
                       : ""
                   }
 
                   ${
                     point.accessibilityIssue
-                      ? `<span class="tag-badge tag-access">✓ Accessibility Issue</span>`
+                      ? `<span class="badge badge-green">Accessibility</span>`
                       : ""
                   }
 
                   ${
                     point.gps
-                      ? `<span class="tag-badge gps-badge">📍 ${point.gps.lat.toFixed(5)}, ${point.gps.lng.toFixed(5)}</span>`
+                      ? `<span class="badge badge-blue">📍 GPS</span>`
                       : ""
                   }
 
@@ -3619,164 +5151,121 @@ function renderGallery() {
 
                 ${
                   point.notes
-                    ? `<p class="notes-text">${escapeHtml(point.notes)}</p>`
+                    ? `
+                        <p class="small">
+                          ${escapeHtml(point.notes)}
+                        </p>
+                      `
                     : ""
                 }
 
 
-                <p class="timestamp">
+                <p class="small">
                   ${escapeHtml(point.timestamp || "")}
                 </p>
 
+              </div>
 
-                <div class="card-actions">
 
-                  <button
-                    class="act-dl"
-                    onclick="exportPointById(${point.id})"
-                  >
-                    Export
-                  </button>
+              <div class="list-actions">
 
-                  <button
-                    class="act-del"
-                    onclick="deleteOne(${point.id})"
-                  >
-                    Delete
-                  </button>
+                <button
+                  class="export"
+                  onclick="exportPointById('${point.id}')"
+                >
+                  Export
+                </button>
 
-                </div>
+                <button
+                  class="danger"
+                  onclick="deletePoint('${point.id}')"
+                >
+                  Delete
+                </button>
 
               </div>
 
             </div>
-
           `;
 
         }
       )
       .join("");
 
+}
 
-  loadMoreBtn.style.display =
-    filtered.length >
-    visible.length
-      ? "block"
-      : "none";
+
+function openPointInGallery(
+  pointId
+) {
+
+  const point =
+    points.find(
+      item =>
+        item.id ===
+        pointId
+    );
 
 
   if (
-    filtered.length >
-    visible.length
+    !point
   ) {
 
-    loadMoreBtn.textContent =
-      `Load More (${filtered.length - visible.length} remaining)`;
+    return;
 
   }
 
 
-  if (
-    lastSavedPointId !== null
-  ) {
-
-    const el =
-      document.getElementById(
-        "point-" +
-        lastSavedPointId
-      );
+  state.selectedProjectId =
+    point.projectId;
 
 
-    if (
-      el
-    ) {
-
-      el.scrollIntoView({
-        behavior:
-          "smooth",
-
-        block:
-          "start"
-      });
-
-    }
+  state.selectedWorkOrderId =
+    point.workOrderId;
 
 
-    lastSavedPointId =
-      null;
-
-  }
-
-}
+  setMainTab(
+    "gallery"
+  );
 
 
-/* ============================================================
-   ESCAPE HTML
-   ============================================================ */
-
-function escapeHtml(
-  value
-) {
-
-  const div =
-    document.createElement(
-      "div"
-    );
+  document.getElementById(
+    "galleryProjectFilter"
+  ).value =
+    point.projectId;
 
 
-  div.textContent =
-    value == null
-      ? ""
-      : String(value);
+  refreshGalleryWorkOrders();
 
 
-  return div.innerHTML;
+  document.getElementById(
+    "galleryWorkOrderFilter"
+  ).value =
+    point.workOrderId;
+
+
+  document.getElementById(
+    "gallerySearch"
+  ).value =
+    point.name;
+
+
+  renderGallery();
 
 }
 
 
 /* ============================================================
-   BUILD FULL POINT FOR EXPORT
-
-   Photos are loaded only when needed.
-   ============================================================ */
-
-async function loadFullPoint(
-  metadata
-) {
-
-  const photos =
-    await dbGetPhotosForPoint(
-      metadata.id
-    );
-
-
-  return {
-
-    ...metadata,
-
-    images:
-      photos.map(
-        photo =>
-          photo.imageData
-      )
-
-  };
-
-}
-
-
-/* ============================================================
-   IMAGE TAGGING
+   EXPORT TAGS
    ============================================================ */
 
 function truncate(
-  str,
+  string,
   max
 ) {
 
   if (
-    !str
+    !string
   ) {
 
     return "";
@@ -3784,12 +5273,12 @@ function truncate(
   }
 
 
-  return str.length > max
-    ? str.slice(
+  return string.length > max
+    ? string.slice(
         0,
         max - 1
       ) + "…"
-    : str;
+    : string;
 
 }
 
@@ -3798,40 +5287,32 @@ function buildCaptionLines(
   point
 ) {
 
-  const lines =
-    [];
+  const project =
+    getProjectById(
+      point.projectId
+    );
 
 
-  lines.push(
-    point.projectId
-  );
+  const workOrder =
+    getWorkOrderById(
+      point.workOrderId
+    );
 
 
-  lines.push(
+  const lines = [
 
-    `Traffic Control: ${
-      point.trafficControl
-        ? "Yes"
-        : "No"
-    }   ` +
+    `${project?.name || ""} | WO ${workOrder?.number || ""}`,
 
-    `Hydrovac: ${
-      point.hydrovac
-        ? "Yes"
-        : "No"
-    }   ` +
+    point.name,
 
-    `Accessibility Issue: ${
-      point.accessibilityIssue
-        ? "Yes"
-        : "No"
-    }`
+    `Traffic Control: ${point.trafficControl ? "Yes" : "No"}   Hydrovac: ${point.hydrovac ? "Yes" : "No"}   Accessibility: ${point.accessibilityIssue ? "Yes" : "No"}`
 
-  );
+  ];
 
 
   let bottomLine =
-    point.timestamp || "";
+    point.timestamp ||
+    "";
 
 
   if (
@@ -3854,7 +5335,7 @@ function buildCaptionLines(
   ) {
 
     lines.push(
-      `Notes: ${truncate(point.notes,100)}`
+      `Notes: ${truncate(point.notes,120)}`
     );
 
   }
@@ -3866,13 +5347,13 @@ function buildCaptionLines(
 
 
 async function drawTaggedCanvas(
-  imageSource,
+  source,
   point
 ) {
 
-  const img =
-    await loadImageEl(
-      imageSource
+  const image =
+    await loadImage(
+      source
     );
 
 
@@ -3885,32 +5366,33 @@ async function drawTaggedCanvas(
   const padding =
     Math.max(
       12,
-      img.width *
-      0.02
+      image.width *
+      .02
     );
 
 
-  const baseFontSize =
+  const fontSize =
     Math.max(
       13,
       Math.round(
-        img.width *
-        0.028
+        image.width *
+        .026
       )
     );
 
 
   const lineHeight =
     Math.round(
-      baseFontSize *
-      1.5
+      fontSize *
+      1.45
     );
 
 
   const captionHeight =
-    padding * 2 +
+    padding *
+      2 +
     lines.length *
-    lineHeight;
+      lineHeight;
 
 
   const canvas =
@@ -3920,25 +5402,25 @@ async function drawTaggedCanvas(
 
 
   canvas.width =
-    img.width;
+    image.width;
 
 
   canvas.height =
-    img.height +
+    image.height +
     captionHeight;
 
 
-  const ctx =
+  const context =
     canvas.getContext(
       "2d"
     );
 
 
-  ctx.fillStyle =
+  context.fillStyle =
     "#ffffff";
 
 
-  ctx.fillRect(
+  context.fillRect(
     0,
     0,
     canvas.width,
@@ -3946,49 +5428,29 @@ async function drawTaggedCanvas(
   );
 
 
-  ctx.drawImage(
-    img,
+  context.drawImage(
+    image,
     0,
     0
   );
 
 
-  ctx.fillStyle =
+  context.fillStyle =
     "#f3f4f6";
 
 
-  ctx.fillRect(
+  context.fillRect(
     0,
-    img.height,
+    image.height,
     canvas.width,
     captionHeight
   );
 
 
-  ctx.strokeStyle =
-    "#d1d5db";
-
-
-  ctx.beginPath();
-
-  ctx.moveTo(
-    0,
-    img.height
-  );
-
-  ctx.lineTo(
-    canvas.width,
-    img.height
-  );
-
-  ctx.stroke();
-
-
   let y =
-    img.height +
+    image.height +
     padding +
-    baseFontSize *
-    0.85;
+    fontSize;
 
 
   lines.forEach(
@@ -3997,17 +5459,17 @@ async function drawTaggedCanvas(
       index
     ) => {
 
-      ctx.fillStyle =
+      context.fillStyle =
         "#111827";
 
 
-      ctx.font =
-        index === 0
-          ? `bold ${baseFontSize + 2}px sans-serif`
-          : `${baseFontSize}px sans-serif`;
+      context.font =
+        index < 2
+          ? `bold ${fontSize}px sans-serif`
+          : `${fontSize}px sans-serif`;
 
 
-      ctx.fillText(
+      context.fillText(
         line,
         padding,
         y
@@ -4026,21 +5488,22 @@ async function drawTaggedCanvas(
 }
 
 
-async function getTaggedImageDataUrl(
-  imageSource,
+async function getTaggedDataUrl(
+  source,
   point,
   format
 ) {
 
   const canvas =
     await drawTaggedCanvas(
-      imageSource,
+      source,
       point
     );
 
 
   if (
-    format === "png"
+    format ===
+    "png"
   ) {
 
     return canvas.toDataURL(
@@ -4052,235 +5515,289 @@ async function getTaggedImageDataUrl(
 
   return canvas.toDataURL(
     "image/jpeg",
-    0.85
+    .85
   );
 
 }
 
 
+async function buildFullPoint(
+  point
+) {
+
+  const photos =
+    await getPhotosForPoint(
+      point.id
+    );
+
+
+  return {
+
+    ...point,
+
+    images:
+      photos.map(
+        photo =>
+          photo.imageData
+      )
+
+  };
+
+}
+
+
 /* ============================================================
-   EXPORT SINGLE POINT
+   EXPORT POINT / WO / PROJECT
    ============================================================ */
 
 async function exportPointById(
-  id
+  pointId
 ) {
 
-  const metadata =
+  const point =
     points.find(
-      point =>
-        point.id === id
+      item =>
+        item.id ===
+        pointId
     );
 
 
   if (
-    !metadata
+    !point
   ) {
-
-    alert(
-      "This point could not be found."
-    );
 
     return;
 
   }
 
 
-  try {
-
-    showToast(
-      "Loading photos…",
-      null,
-      true
+  const fullPoint =
+    await buildFullPoint(
+      point
     );
 
 
-    const fullPoint =
-      await loadFullPoint(
-        metadata
-      );
-
-
-    hideToast();
-
-
-    const format =
-      document.getElementById(
-        "exportFormat"
-      ).value;
-
-
-    await exportPoints(
-      [fullPoint],
-      format
-    );
-
-
-  } catch (err) {
-
-    hideToast();
-
-
-    console.error(
-      "Point export failed",
-      err
-    );
-
-
-    alert(
-      "Could not load this point for export."
-    );
-
-  }
-
-}
-
-
-/* ============================================================
-   EXPORT SHOWN
-   ============================================================ */
-
-async function exportShownFromDB() {
-
-  const metadata =
-    getFilteredPoints();
-
-
-  if (
-    metadata.length === 0
-  ) {
-
-    alert(
-      "No photos to export."
-    );
-
-    return;
-
-  }
-
-
-  const format =
+  await exportPoints(
+    [
+      fullPoint
+    ],
     document.getElementById(
       "exportFormat"
-    ).value;
-
-
-  await exportMetadataList(
-    metadata,
-    format
+    )?.value ||
+    "jpeg"
   );
 
 }
 
 
-/* ============================================================
-   EXPORT ALL
-   ============================================================ */
-
-async function exportAllFromDB() {
-
-  if (
-    points.length === 0
-  ) {
-
-    alert(
-      "No photos to export."
-    );
-
-    return;
-
-  }
-
-
-  const format =
-    document.getElementById(
-      "exportFormat"
-    ).value;
-
-
-  await exportMetadataList(
-    points,
-    format
-  );
-
-}
-
-
-/* ============================================================
-   LOAD SELECTED POINTS FOR EXPORT
-   ============================================================ */
-
-async function exportMetadataList(
-  metadataList,
-  format
+async function exportWorkOrderById(
+  workOrderId
 ) {
+
+  const list =
+    workOrderPoints(
+      workOrderId
+    );
+
+
+  if (
+    !list.length
+  ) {
+
+    alert(
+      "This work order has no saved points."
+    );
+
+    return;
+
+  }
+
 
   const fullPoints =
     [];
 
 
-  try {
+  for (
+    let index = 0;
+    index < list.length;
+    index++
+  ) {
 
-    for (
-      let i = 0;
-      i < metadataList.length;
-      i++
-    ) {
-
-      showToast(
-        `Loading points… ${i + 1}/${metadataList.length}`,
-        null,
-        true
-      );
-
-
-      const fullPoint =
-        await loadFullPoint(
-          metadataList[i]
-        );
-
-
-      fullPoints.push(
-        fullPoint
-      );
-
-
-      await new Promise(
-        resolve =>
-          setTimeout(
-            resolve,
-            0
-          )
-      );
-
-    }
-
-
-    hideToast();
-
-
-    await exportPoints(
-      fullPoints,
-      format
+    showToast(
+      `Loading ${index + 1}/${list.length} point(s)…`,
+      true
     );
 
 
-  } catch (err) {
-
-    hideToast();
-
-
-    console.error(
-      "Export load failed",
-      err
-    );
-
-
-    alert(
-      "The selected photos could not be loaded for export."
+    fullPoints.push(
+      await buildFullPoint(
+        list[index]
+      )
     );
 
   }
+
+
+  hideToast();
+
+
+  await exportPoints(
+    fullPoints,
+    document.getElementById(
+      "exportFormat"
+    )?.value ||
+    "jpeg"
+  );
+
+}
+
+
+async function exportProject(
+  projectId
+) {
+
+  const list =
+    points.filter(
+      point =>
+        point.projectId ===
+        projectId
+    );
+
+
+  if (
+    !list.length
+  ) {
+
+    alert(
+      "This project has no saved points."
+    );
+
+    return;
+
+  }
+
+
+  const fullPoints =
+    [];
+
+
+  for (
+    let index = 0;
+    index < list.length;
+    index++
+  ) {
+
+    showToast(
+      `Loading ${index + 1}/${list.length} point(s)…`,
+      true
+    );
+
+
+    fullPoints.push(
+      await buildFullPoint(
+        list[index]
+      )
+    );
+
+  }
+
+
+  hideToast();
+
+
+  await exportPoints(
+    fullPoints,
+    document.getElementById(
+      "exportFormat"
+    )?.value ||
+    "jpeg"
+  );
+
+}
+
+
+async function exportFiltered() {
+
+  const list =
+    getFilteredGalleryPoints();
+
+
+  if (
+    !list.length
+  ) {
+
+    alert(
+      "No points to export."
+    );
+
+    return;
+
+  }
+
+
+  const fullPoints =
+    [];
+
+
+  for (
+    let index = 0;
+    index < list.length;
+    index++
+  ) {
+
+    showToast(
+      `Loading ${index + 1}/${list.length} point(s)…`,
+      true
+    );
+
+
+    fullPoints.push(
+      await buildFullPoint(
+        list[index]
+      )
+    );
+
+  }
+
+
+  hideToast();
+
+
+  await exportPoints(
+    fullPoints,
+    document.getElementById(
+      "exportFormat"
+    ).value
+  );
+
+}
+
+
+async function exportCurrentWorkOrder() {
+
+  const workOrderId =
+    document.getElementById(
+      "galleryWorkOrderFilter"
+    ).value ||
+    state.selectedWorkOrderId;
+
+
+  if (
+    !workOrderId
+  ) {
+
+    alert(
+      "Select a work order first."
+    );
+
+    return;
+
+  }
+
+
+  await exportWorkOrderById(
+    workOrderId
+  );
 
 }
 
@@ -4289,33 +5806,10 @@ async function exportMetadataList(
    EXPORT ENGINE
    ============================================================ */
 
-function sanitizeFolderName(
-  name
-) {
-
-  return (
-    name ||
-    "Unlabeled"
-  )
-    .trim()
-    .replace(
-      /[\/\\?%*:|"<>]/g,
-      "-"
-    );
-
-}
-
-
 async function exportPoints(
   list,
   format
 ) {
-
-  list =
-    list.filter(
-      Boolean
-    );
-
 
   const totalPhotos =
     list.reduce(
@@ -4325,16 +5819,15 @@ async function exportPoints(
       ) =>
         sum +
         (
-          point.images
-            ? point.images.length
-            : 0
+          point.images?.length ||
+          0
         ),
       0
     );
 
 
   if (
-    totalPhotos === 0
+    !totalPhotos
   ) {
 
     alert(
@@ -4347,12 +5840,78 @@ async function exportPoints(
 
 
   if (
-    format === "pdf"
+    format ===
+    "pdf"
   ) {
 
-    await exportAsPdf(
+    await exportPdf(
       list,
       totalPhotos
+    );
+
+    return;
+
+  }
+
+
+  if (
+    totalPhotos ===
+    1
+  ) {
+
+    const point =
+      list.find(
+        item =>
+          item.images?.length
+      );
+
+
+    const data =
+      await getTaggedDataUrl(
+        point.images[0],
+        point,
+        format
+      );
+
+
+    const project =
+      getProjectById(
+        point.projectId
+      );
+
+
+    const workOrder =
+      getWorkOrderById(
+        point.workOrderId
+      );
+
+
+    const anchor =
+      document.createElement(
+        "a"
+      );
+
+
+    anchor.href =
+      data;
+
+
+    anchor.download =
+      `${sanitizeName(project?.name)}_${sanitizeName(workOrder?.number)}_${sanitizeName(point.name)}.${format === "png" ? "png" : "jpg"}`;
+
+
+    document.body.appendChild(
+      anchor
+    );
+
+
+    anchor.click();
+
+    anchor.remove();
+
+
+    showToast(
+      "Export complete"
     );
 
 
@@ -4361,105 +5920,12 @@ async function exportPoints(
   }
 
 
-  /* -----------------------------------------
-     SINGLE PHOTO
-     ----------------------------------------- */
-
-  if (
-    totalPhotos === 1
-  ) {
-
-    const point =
-      list.find(
-        item =>
-          item.images &&
-          item.images.length > 0
-      );
-
-
-    if (
-      !confirm(
-        `Export this photo as a tagged ${format.toUpperCase()}?`
-      )
-    ) {
-
-      return;
-
-    }
-
-
-    try {
-
-      const dataUrl =
-        await getTaggedImageDataUrl(
-          point.images[0],
-          point,
-          format
-        );
-
-
-      const link =
-        document.createElement(
-          "a"
-        );
-
-
-      link.href =
-        dataUrl;
-
-
-      link.download =
-        `${sanitizeFolderName(point.projectId)}_${point.id}_1.${format === "png" ? "png" : "jpg"}`;
-
-
-      document.body.appendChild(
-        link
-      );
-
-
-      link.click();
-
-
-      document.body.removeChild(
-        link
-      );
-
-
-      showToast(
-        "Export complete"
-      );
-
-
-    } catch (err) {
-
-      console.error(
-        "Export failed",
-        err
-      );
-
-
-      alert(
-        "The photo could not be exported."
-      );
-
-    }
-
-
-    return;
-
-  }
-
-
-  /* -----------------------------------------
-     ZIP EXPORT
-     ----------------------------------------- */
-
   if (
     !window.JSZip
   ) {
 
     alert(
-      "The ZIP library did not load. Make sure you have an internet connection and reload the app."
+      "ZIP library did not load. Reload with an internet connection."
     );
 
     return;
@@ -4469,7 +5935,7 @@ async function exportPoints(
 
   if (
     !confirm(
-      `Export ${totalPhotos} tagged ${format.toUpperCase()} photo(s) in one ZIP file?`
+      `Export ${totalPhotos} tagged photo(s) into one ZIP file?`
     )
   ) {
 
@@ -4482,110 +5948,93 @@ async function exportPoints(
     new JSZip();
 
 
-  let count =
+  let completed =
     0;
 
 
-  try {
+  for (
+    const point of list
+  ) {
+
+    const project =
+      getProjectById(
+        point.projectId
+      );
+
+
+    const workOrder =
+      getWorkOrderById(
+        point.workOrderId
+      );
+
+
+    const folder =
+      `${sanitizeName(project?.name)}/${sanitizeName(workOrder?.number)}/${sanitizeName(point.name)}`;
+
 
     for (
-      const point of list
+      let index = 0;
+      index < point.images.length;
+      index++
     ) {
 
-      const folder =
-        sanitizeFolderName(
-          point.projectId
+      showToast(
+        `Preparing ${completed + 1}/${totalPhotos}…`,
+        true
+      );
+
+
+      const data =
+        await getTaggedDataUrl(
+          point.images[index],
+          point,
+          format
         );
 
 
-      for (
-        let i = 0;
-        i < point.images.length;
-        i++
-      ) {
+      zip.file(
 
-        showToast(
-          `Preparing export… ${count + 1}/${totalPhotos}`,
-          null,
-          true
-        );
+        `${folder}/${sanitizeName(point.name)}_${String(index + 1).padStart(3,"0")}.${format === "png" ? "png" : "jpg"}`,
 
+        data.split(",")[1],
 
-        const dataUrl =
-          await getTaggedImageDataUrl(
-            point.images[i],
-            point,
-            format
-          );
+        {
+          base64:
+            true
+        }
+
+      );
 
 
-        const base64 =
-          dataUrl.split(",")[1];
+      completed++;
 
 
-        const filename =
-          `${sanitizeFolderName(point.projectId)}_${point.id}_${i + 1}.${format === "png" ? "png" : "jpg"}`;
-
-
-        zip.file(
-          `${folder}/${filename}`,
-          base64,
-          {
-            base64:
-              true
-          }
-        );
-
-
-        count++;
-
-
-        await new Promise(
-          resolve =>
-            setTimeout(
-              resolve,
-              0
-            )
-        );
-
-      }
+      await new Promise(
+        resolve =>
+          setTimeout(
+            resolve,
+            0
+          )
+      );
 
     }
 
+  }
 
-    showToast(
-      "Compressing ZIP…",
-      null,
-      true
-    );
 
+  showToast(
+    "Compressing ZIP…",
+    true
+  );
+
+
+  try {
 
     const blob =
       await zip.generateAsync(
         {
           type:
             "blob"
-        },
-        metadata => {
-
-          const percent =
-            Math.round(
-              metadata.percent
-            );
-
-
-          if (
-            percent % 10 === 0
-          ) {
-
-            showToast(
-              `Compressing ZIP… ${percent}%`,
-              null,
-              true
-            );
-
-          }
-
         }
       );
 
@@ -4596,31 +6045,28 @@ async function exportPoints(
       );
 
 
-    const link =
+    const anchor =
       document.createElement(
         "a"
       );
 
 
-    link.href =
+    anchor.href =
       url;
 
 
-    link.download =
-      `photo-tagger-export-${Date.now()}.zip`;
+    anchor.download =
+      `project-photo-export-${Date.now()}.zip`;
 
 
     document.body.appendChild(
-      link
+      anchor
     );
 
 
-    link.click();
+    anchor.click();
 
-
-    document.body.removeChild(
-      link
-    );
+    anchor.remove();
 
 
     setTimeout(
@@ -4636,24 +6082,24 @@ async function exportPoints(
 
 
     showToast(
-      `Export complete — ${count} photo(s)`
+      `ZIP ready — ${completed} photo(s)`
     );
 
 
-  } catch (err) {
+  } catch (
+    error
+  ) {
 
     hideToast();
 
 
     console.error(
-      "ZIP export failed",
-      err
+      error
     );
 
 
     alert(
-      "The ZIP could not be built.\n\n" +
-      "For extremely large exports, export a smaller group at a time or use PDF."
+      "ZIP export failed. Try a smaller group."
     );
 
   }
@@ -4662,10 +6108,10 @@ async function exportPoints(
 
 
 /* ============================================================
-   PDF EXPORT
+   PDF
    ============================================================ */
 
-async function exportAsPdf(
+async function exportPdf(
   list,
   totalPhotos
 ) {
@@ -4675,7 +6121,7 @@ async function exportAsPdf(
   ) {
 
     alert(
-      "The PDF library did not load. Make sure you have an internet connection and reload the app."
+      "PDF library did not load."
     );
 
     return;
@@ -4685,7 +6131,7 @@ async function exportAsPdf(
 
   if (
     !confirm(
-      `Build one PDF containing ${totalPhotos} tagged photo(s)? Keep the app open until the file finishes.`
+      `Create one PDF with ${totalPhotos} photo(s)?`
     )
   ) {
 
@@ -4700,22 +6146,24 @@ async function exportAsPdf(
     window.jspdf;
 
 
-  const doc =
-    new jsPDF({
-      unit:
-        "pt",
+  const documentPdf =
+    new jsPDF(
+      {
+        unit:
+          "pt",
 
-      format:
-        "a4"
-    });
-
-
-  const pageW =
-    doc.internal.pageSize.getWidth();
+        format:
+          "a4"
+      }
+    );
 
 
-  const pageH =
-    doc.internal.pageSize.getHeight();
+  const pageWidth =
+    documentPdf.internal.pageSize.getWidth();
+
+
+  const pageHeight =
+    documentPdf.internal.pageSize.getHeight();
 
 
   const margin =
@@ -4730,254 +6178,143 @@ async function exportAsPdf(
     true;
 
 
-  try {
-
-    for (
-      const point of list
-    ) {
-
-      for (
-        let i = 0;
-        i < point.images.length;
-        i++
-      ) {
-
-        showToast(
-          `Building PDF… ${count + 1}/${totalPhotos}`,
-          null,
-          true
-        );
-
-
-        const canvas =
-          await drawTaggedCanvas(
-            point.images[i],
-            point
-          );
-
-
-        const imgData =
-          canvas.toDataURL(
-            "image/jpeg",
-            0.8
-          );
-
-
-        const ratio =
-          Math.min(
-
-            (
-              pageW -
-              margin * 2
-            ) /
-            canvas.width,
-
-            (
-              pageH -
-              margin * 2
-            ) /
-            canvas.height
-
-          );
-
-
-        const width =
-          canvas.width *
-          ratio;
-
-
-        const height =
-          canvas.height *
-          ratio;
-
-
-        if (
-          !firstPage
-        ) {
-
-          doc.addPage();
-
-        }
-
-
-        firstPage =
-          false;
-
-
-        doc.addImage(
-
-          imgData,
-
-          "JPEG",
-
-          (
-            pageW -
-            width
-          ) / 2,
-
-          (
-            pageH -
-            height
-          ) / 2,
-
-          width,
-
-          height
-
-        );
-
-
-        count++;
-
-
-        await new Promise(
-          resolve =>
-            setTimeout(
-              resolve,
-              0
-            )
-        );
-
-      }
-
-    }
-
-
-    showToast(
-      "Saving PDF…",
-      null,
-      true
-    );
-
-
-    doc.save(
-      `photo-tagger-export-${Date.now()}.pdf`
-    );
-
-
-    await new Promise(
-      resolve =>
-        setTimeout(
-          resolve,
-          500
-        )
-    );
-
-
-    hideToast();
-
-
-    showToast(
-      `PDF ready — ${count} photo(s)`
-    );
-
-
-  } catch (err) {
-
-    hideToast();
-
-
-    console.error(
-      "PDF failed",
-      err
-    );
-
-
-    alert(
-      "The PDF could not be created. Try exporting fewer photos at once."
-    );
-
-  }
-
-}
-
-
-/* ============================================================
-   DELETE POINT
-   ============================================================ */
-
-async function deleteOne(
-  id
-) {
-
-  if (
-    !confirm(
-      "Delete this point and all of its photos?"
-    )
+  for (
+    const point of list
   ) {
 
-    return;
+    for (
+      const source of point.images
+    ) {
 
-  }
-
-
-  try {
-
-    showToast(
-      "Deleting…",
-      null,
-      true
-    );
-
-
-    await dbDeletePoint(
-      id
-    );
-
-
-    points =
-      points.filter(
-        point =>
-          point.id !== id
+      showToast(
+        `Building PDF ${count + 1}/${totalPhotos}…`,
+        true
       );
 
 
-    updatePointCount();
-
-    renderGallery();
-
-    hideToast();
-
-
-    showToast(
-      "Point deleted"
-    );
+      const canvas =
+        await drawTaggedCanvas(
+          source,
+          point
+        );
 
 
-    checkStorageEstimate();
+      const data =
+        canvas.toDataURL(
+          "image/jpeg",
+          .8
+        );
 
 
-  } catch (err) {
+      const ratio =
+        Math.min(
 
-    hideToast();
+          (
+            pageWidth -
+            margin *
+              2
+          ) /
+          canvas.width,
+
+          (
+            pageHeight -
+            margin *
+              2
+          ) /
+          canvas.height
+
+        );
 
 
-    console.error(
-      "Delete failed",
-      err
-    );
+      const width =
+        canvas.width *
+        ratio;
 
 
-    alert(
-      "Could not delete this point. Please try again."
-    );
+      const height =
+        canvas.height *
+        ratio;
+
+
+      if (
+        !firstPage
+      ) {
+
+        documentPdf.addPage();
+
+      }
+
+
+      firstPage =
+        false;
+
+
+      documentPdf.addImage(
+
+        data,
+
+        "JPEG",
+
+        (
+          pageWidth -
+          width
+        ) /
+        2,
+
+        (
+          pageHeight -
+          height
+        ) /
+        2,
+
+        width,
+
+        height
+
+      );
+
+
+      count++;
+
+
+      await new Promise(
+        resolve =>
+          setTimeout(
+            resolve,
+            0
+          )
+      );
+
+    }
 
   }
+
+
+  documentPdf.save(
+    `project-photo-export-${Date.now()}.pdf`
+  );
+
+
+  hideToast();
+
+
+  showToast(
+    `PDF ready — ${count} photo(s)`
+  );
 
 }
 
 
 /* ============================================================
-   STORAGE ESTIMATE
+   STORAGE
    ============================================================ */
 
-async function checkStorageEstimate() {
+async function checkStorage() {
 
   try {
 
     if (
-      navigator.storage &&
-      navigator.storage.estimate
+      navigator.storage?.estimate
     ) {
 
       const {
@@ -4987,7 +6324,7 @@ async function checkStorageEstimate() {
         await navigator.storage.estimate();
 
 
-      const warning =
+      const element =
         document.getElementById(
           "storageWarning"
         );
@@ -4995,678 +6332,36 @@ async function checkStorageEstimate() {
 
       if (
         quota &&
-        usage / quota >
-        0.85
+        usage /
+          quota >
+        .85
       ) {
 
-        const percent =
-          Math.round(
-            (
-              usage /
-              quota
-            ) *
-            100
-          );
-
-
-        warning.style.display =
+        element.style.display =
           "block";
 
 
-        warning.textContent =
-          `Photo Tagger storage is approximately ${percent}% full. Export and delete older photos before continuing.`;
+        element.textContent =
+          `Photo storage is approximately ${Math.round(usage / quota * 100)}% full. Export and delete older photos soon.`;
 
       } else {
 
-        warning.style.display =
+        element.style.display =
           "none";
 
       }
 
     }
 
-  } catch (err) {
-
-    console.warn(
-      "Storage estimate unavailable",
-      err
-    );
-
-  }
+  } catch (
+    error
+  ) {}
 
 }
 
 
 /* ============================================================
-   OLD LOCALSTORAGE MIGRATION
-   ============================================================ */
-
-async function migrateOldLocalStorage() {
-
-  /* -----------------------------------------
-     OLD V2 POINTS
-     ----------------------------------------- */
-
-  try {
-
-    const raw =
-      localStorage.getItem(
-        OLD_LOCALSTORAGE_KEY_V2
-      );
-
-
-    if (
-      raw
-    ) {
-
-      const oldPoints =
-        JSON.parse(
-          raw
-        );
-
-
-      for (
-        const oldPoint of oldPoints
-      ) {
-
-        if (
-          !Array.isArray(
-            oldPoint.images
-          )
-        ) {
-
-          continue;
-
-        }
-
-
-        const staged =
-          [];
-
-
-        for (
-          const image of oldPoint.images
-        ) {
-
-          let thumb =
-            image;
-
-
-          try {
-
-            thumb =
-              await resizeImageDataUrl(
-                image,
-                260,
-                0.55
-              );
-
-          } catch (e) {
-
-            console.warn(
-              "Thumbnail migration failed",
-              e
-            );
-
-          }
-
-
-          staged.push({
-
-            full:
-              image,
-
-            thumb
-
-          });
-
-        }
-
-
-        await dbSavePoint(
-
-          {
-
-            id:
-              oldPoint.id ||
-              Date.now(),
-
-            projectId:
-              oldPoint.projectId ||
-              "Migrated",
-
-            trafficControl:
-              !!oldPoint.trafficControl,
-
-            hydrovac:
-              !!oldPoint.hydrovac,
-
-            accessibilityIssue:
-              !!oldPoint.accessibilityIssue,
-
-            gps:
-              oldPoint.gps ||
-              null,
-
-            notes:
-              oldPoint.notes ||
-              "",
-
-            timestamp:
-              oldPoint.timestamp ||
-              new Date().toLocaleString(),
-
-            createdAt:
-              oldPoint.id ||
-              Date.now()
-
-          },
-
-          staged
-
-        );
-
-      }
-
-
-      localStorage.removeItem(
-        OLD_LOCALSTORAGE_KEY_V2
-      );
-
-    }
-
-  } catch (err) {
-
-    console.error(
-      "Old V2 migration failed",
-      err
-    );
-
-  }
-
-
-  /* -----------------------------------------
-     OLD V1 POINTS
-     ----------------------------------------- */
-
-  try {
-
-    const raw =
-      localStorage.getItem(
-        OLD_LOCALSTORAGE_KEY_V1
-      );
-
-
-    if (
-      raw
-    ) {
-
-      const oldPoints =
-        JSON.parse(
-          raw
-        );
-
-
-      for (
-        const oldPoint of oldPoints
-      ) {
-
-        if (
-          !oldPoint.imageData
-        ) {
-
-          continue;
-
-        }
-
-
-        let thumb =
-          oldPoint.imageData;
-
-
-        try {
-
-          thumb =
-            await resizeImageDataUrl(
-              oldPoint.imageData,
-              260,
-              0.55
-            );
-
-        } catch (e) {
-
-          console.warn(
-            "Thumbnail migration failed",
-            e
-          );
-
-        }
-
-
-        await dbSavePoint(
-
-          {
-
-            id:
-              oldPoint.id ||
-              Date.now(),
-
-            projectId:
-              oldPoint.projectId ||
-              "Migrated",
-
-            trafficControl:
-              !!oldPoint.trafficControl,
-
-            hydrovac:
-              !!oldPoint.hydrovac,
-
-            accessibilityIssue:
-              false,
-
-            gps:
-              null,
-
-            notes:
-              oldPoint.notes ||
-              "",
-
-            timestamp:
-              oldPoint.timestamp ||
-              new Date().toLocaleString(),
-
-            createdAt:
-              oldPoint.id ||
-              Date.now()
-
-          },
-
-          [
-            {
-
-              full:
-                oldPoint.imageData,
-
-              thumb
-
-            }
-          ]
-
-        );
-
-      }
-
-
-      localStorage.removeItem(
-        OLD_LOCALSTORAGE_KEY_V1
-      );
-
-    }
-
-  } catch (err) {
-
-    console.error(
-      "Old V1 migration failed",
-      err
-    );
-
-  }
-
-}
-
-
-/* ============================================================
-   OLD DRAFT LOCALSTORAGE MIGRATION
-   ============================================================ */
-
-async function migrateOldDraft() {
-
-  try {
-
-    const existing =
-      await dbGet(
-        DRAFT_STORE,
-        CURRENT_DRAFT_ID
-      );
-
-
-    if (
-      existing
-    ) {
-
-      return;
-
-    }
-
-
-    const raw =
-      localStorage.getItem(
-        OLD_DRAFT_KEY
-      );
-
-
-    if (
-      !raw
-    ) {
-
-      return;
-
-    }
-
-
-    const oldDraft =
-      JSON.parse(
-        raw
-      );
-
-
-    const converted =
-      [];
-
-
-    for (
-      const image of
-      oldDraft.stagedImages ||
-      []
-    ) {
-
-      let thumb =
-        image;
-
-
-      try {
-
-        thumb =
-          await resizeImageDataUrl(
-            image,
-            260,
-            0.55
-          );
-
-      } catch (e) {
-
-        console.warn(
-          "Old draft thumbnail failed",
-          e
-        );
-
-      }
-
-
-      converted.push({
-
-        full:
-          image,
-
-        thumb
-
-      });
-
-    }
-
-
-    await dbPut(
-      DRAFT_STORE,
-      {
-
-        id:
-          CURRENT_DRAFT_ID,
-
-        projectId:
-          oldDraft.projectId ||
-          "",
-
-        trafficControl:
-          !!oldDraft.trafficControl,
-
-        hydrovac:
-          !!oldDraft.hydrovac,
-
-        accessibilityIssue:
-          !!oldDraft.accessibilityIssue,
-
-        notes:
-          oldDraft.notes ||
-          "",
-
-        stagedImages:
-          converted,
-
-        stagedGps:
-          oldDraft.stagedGps ||
-          null,
-
-        updatedAt:
-          Date.now()
-
-      }
-    );
-
-
-    localStorage.removeItem(
-      OLD_DRAFT_KEY
-    );
-
-
-  } catch (err) {
-
-    console.error(
-      "Old draft migration failed",
-      err
-    );
-
-  }
-
-}
-
-
-/* ============================================================
-   CREATE THUMBNAILS FOR PHOTOS MIGRATED FROM OLD INDEXEDDB
-   ============================================================ */
-
-async function migrateMissingThumbnails() {
-
-  const targets =
-    points.filter(
-      point =>
-        point.needsThumbnailMigration ||
-        (
-          point.photoCount > 0 &&
-          (
-            !point.previewThumbs ||
-            point.previewThumbs.length === 0
-          )
-        )
-    );
-
-
-  if (
-    targets.length === 0
-  ) {
-
-    return;
-
-  }
-
-
-  for (
-    let i = 0;
-    i < targets.length;
-    i++
-  ) {
-
-    const point =
-      targets[i];
-
-
-    try {
-
-      const photos =
-        await dbGetPhotosForPoint(
-          point.id
-        );
-
-
-      const thumbs =
-        [];
-
-
-      for (
-        const photo of photos.slice(
-          0,
-          3
-        )
-      ) {
-
-        const thumb =
-          await resizeImageDataUrl(
-            photo.imageData,
-            260,
-            0.55
-          );
-
-
-        thumbs.push(
-          thumb
-        );
-
-      }
-
-
-      const updated = {
-
-        ...point,
-
-        previewThumbs:
-          thumbs
-
-      };
-
-
-      delete updated.needsThumbnailMigration;
-
-
-      await dbPut(
-        POINTS_STORE,
-        updated
-      );
-
-
-      const memoryPoint =
-        points.find(
-          p =>
-            p.id === point.id
-        );
-
-
-      if (
-        memoryPoint
-      ) {
-
-        memoryPoint.previewThumbs =
-          thumbs;
-
-
-        delete memoryPoint.needsThumbnailMigration;
-
-      }
-
-
-    } catch (err) {
-
-      console.error(
-        "Thumbnail migration failed",
-        err
-      );
-
-    }
-
-
-    await new Promise(
-      resolve =>
-        setTimeout(
-          resolve,
-          0
-        )
-    );
-
-  }
-
-}
-
-
-/* ============================================================
-   INITIALIZATION
-   ============================================================ */
-
-(async function init() {
-
-  if (
-    !(
-      "indexedDB" in window
-    )
-  ) {
-
-    alert(
-      "Your browser does not support the storage system Photo Tagger requires. Please use Safari or Chrome."
-    );
-
-
-    return;
-
-  }
-
-
-  try {
-
-    await openDB();
-
-
-    await migrateOldLocalStorage();
-
-
-    await migrateOldDraft();
-
-
-    points =
-      await dbGetAllPointMetadata();
-
-
-    await migrateMissingThumbnails();
-
-
-    points =
-      await dbGetAllPointMetadata();
-
-
-    await loadDraft();
-
-
-    updatePointCount();
-
-
-    checkStorageEstimate();
-
-
-  } catch (err) {
-
-    console.error(
-      "Startup failed",
-      err
-    );
-
-
-    alert(
-      "There was a problem loading Photo Tagger storage. Reload the page and try again."
-    );
-
-  }
-
-})();
-
-
-/* ============================================================
-   PROTECT UNSAVED WORK
+   PAGE PROTECTION
    ============================================================ */
 
 window.addEventListener(
@@ -5674,7 +6369,7 @@ window.addEventListener(
   event => {
 
     if (
-      stagedImages.length > 0
+      stagedPhotos.length
     ) {
 
       event.preventDefault();
@@ -5687,8 +6382,108 @@ window.addEventListener(
   }
 );
 
+
+/* ============================================================
+   STARTUP
+   ============================================================ */
+
+(async function init() {
+
+  if (
+    !(
+      "indexedDB" in window
+    )
+  ) {
+
+    alert(
+      "This browser does not support the required storage. Use Safari or Chrome."
+    );
+
+    return;
+
+  }
+
+
+  try {
+
+    await openDB();
+
+
+    projects =
+      await getAll(
+        STORE_PROJECTS
+      );
+
+
+    workOrders =
+      await getAll(
+        STORE_WORKORDERS
+      );
+
+
+    points =
+      await getAll(
+        STORE_POINTS
+      );
+
+
+    projects.sort(
+      (
+        a,
+        b
+      ) =>
+        b.createdAt -
+        a.createdAt
+    );
+
+
+    workOrders.sort(
+      (
+        a,
+        b
+      ) =>
+        b.createdAt -
+        a.createdAt
+    );
+
+
+    points.sort(
+      (
+        a,
+        b
+      ) =>
+        b.createdAt -
+        a.createdAt
+    );
+
+
+    await loadSettings();
+
+
+    renderBrowse();
+
+
+    checkStorage();
+
+
+  } catch (
+    error
+  ) {
+
+    console.error(
+      error
+    );
+
+
+    alert(
+      "There was a problem loading the app database."
+    );
+
+  }
+
+})();
+
 </script>
 
 </body>
 </html>
-```
