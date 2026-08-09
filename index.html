@@ -3,6486 +3,1292 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Project Photo Tracker</title>
-
+<title>Photo Tagger</title>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Photo Tracker">
-
+<meta name="apple-mobile-web-app-title" content="Photo Tagger">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📷</text></svg>">
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
 <style>
-* {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-}
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f3f4f6;
+    color: #1f2937;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  header {
+    background: #1e40af;
+    color: white;
+    padding: 16px 20px;
+    padding-top: calc(16px + env(safe-area-inset-top));
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  header h1 { font-size: 20px; margin: 0; flex: 1; }
+  .back-btn {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: white;
+    font-size: 20px;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .back-btn.show { display: flex; }
+  .tabs {
+    display: flex;
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    z-index: 9;
+  }
+  .tab {
+    flex: 1;
+    padding: 14px;
+    text-align: center;
+    border: none;
+    background: none;
+    font-size: 15px;
+    font-weight: 600;
+    color: #6b7280;
+    border-bottom: 3px solid transparent;
+  }
+  .tab.active { color: #1e40af; border-bottom-color: #1e40af; }
+  main { padding: 16px; max-width: 700px; margin: 0 auto; }
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .card h2 { margin: 0 0 4px; font-size: 17px; }
+  .card .subhint { font-size: 12px; color: #9ca3af; margin: 0 0 14px; }
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+  .btn-primary { background: #2563eb; color: white; }
+  .btn-secondary { background: #4b5563; color: white; }
+  .btn-danger { background: #dc2626; color: white; }
+  .btn-success { background: #16a34a; color: white; }
+  .btn-outline { background: #eef2ff; color: #2563eb; }
+  .btn:disabled { background: #d1d5db; color: #9ca3af; cursor: not-allowed; }
+  input[type="text"], textarea, select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 15px;
+    margin-bottom: 4px;
+    font-family: inherit;
+    background: white;
+  }
+  label.field-label { font-size: 13px; font-weight: 600; color: #374151; display: block; margin-bottom: 6px; margin-top: 12px; }
+  .hint { font-size: 12px; color: #9ca3af; margin: 4px 0 0; }
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f9fafb;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 10px;
+  }
+  .checkbox-row input { width: 20px; height: 20px; }
+  .checkbox-row span { font-weight: 500; }
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #f3f4f6;
-  color: #1f2937;
-  padding-bottom: env(safe-area-inset-bottom);
-}
+  .gps-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: #eff6ff;
+    color: #1e40af;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 12px;
+  }
+  .gps-status button {
+    background: none;
+    border: none;
+    color: #2563eb;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 8px;
+  }
+  .gps-status.error { background: #fef2f2; color: #b91c1c; }
 
-header {
-  background: #1e40af;
-  color: white;
-  padding: 14px 16px;
-  padding-top: calc(14px + env(safe-area-inset-top));
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+  .thumb-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .thumb-wrap {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f3f4f6;
+  }
+  .thumb-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .thumb-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(0,0,0,0.65);
+    color: white;
+    border: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 13px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .thumb-count-badge {
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    background: rgba(37,99,235,0.9);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+  }
 
-header h1 {
-  margin: 0;
-  font-size: 19px;
-  flex: 1;
-}
+  .empty-state { text-align: center; padding: 40px 20px; color: #6b7280; }
+  .search-grid { display: flex; flex-direction: column; gap: 10px; }
+  .action-row { display: flex; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid #e5e7eb; }
+  .action-row .btn { margin-bottom: 0; }
 
-.header-btn {
-  border: none;
-  background: rgba(255,255,255,.15);
-  color: white;
-  border-radius: 8px;
-  min-width: 38px;
-  height: 38px;
-  padding: 0 10px;
-  font-weight: 700;
-}
+  .point-card { background: white; border-radius: 12px; overflow: hidden; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .point-photos {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    background: #e5e7eb;
+  }
+  .point-photos.single { grid-template-columns: 1fr; }
+  .point-photos img { width: 100%; height: 120px; object-fit: cover; display: block; }
+  .point-photos.single img { height: 220px; }
+  .point-photos .more-overlay { position: relative; }
+  .point-photos .more-overlay::after {
+    content: attr(data-count);
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .photo-info { padding: 14px; }
+  .project-badge { display: inline-block; background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .photo-count-label { font-size: 12px; color: #6b7280; font-weight: 600; margin-left: 6px; }
+  .tag-badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; margin-right: 6px; margin-bottom: 6px; }
+  .tag-traffic { background: #fed7aa; color: #9a3412; }
+  .tag-hydro { background: #e9d5ff; color: #6b21a8; }
+  .tag-access { background: #bbf7d0; color: #14532d; }
+  .gps-badge { background: #dbeafe; color: #1e40af; }
+  .notes-text { font-size: 13px; color: #4b5563; margin: 6px 0; }
+  .timestamp { font-size: 11px; color: #9ca3af; margin-bottom: 10px; }
+  .card-actions { display: flex; gap: 8px; }
+  .card-actions button { flex: 1; padding: 9px; border-radius: 6px; border: none; font-size: 12px; font-weight: 600; }
+  .act-dl { background: #eff6ff; color: #2563eb; }
+  .act-edit { background: #fef3c7; color: #92400e; }
+  .act-del { background: #fef2f2; color: #dc2626; }
+  input[type="file"] { display: none; }
+  .storage-warning { background: #fef9c3; color: #854d0e; padding: 10px 14px; border-radius: 8px; font-size: 12px; margin-bottom: 16px; }
 
-.breadcrumbs {
-  background: #eff6ff;
-  border-bottom: 1px solid #dbeafe;
-  padding: 9px 14px;
-  font-size: 12px;
-  color: #1e40af;
-  position: sticky;
-  top: 66px;
-  z-index: 15;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%) translateY(20px);
+    background: #111827;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: calc(100% - 40px);
+    text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast .toast-thumb { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
 
-.tabs {
-  display: flex;
-  background: white;
-  border-bottom: 1px solid #e5e7eb;
-  position: sticky;
-  top: 100px;
-  z-index: 14;
-}
+  @keyframes flashHighlight {
+    0% { box-shadow: 0 0 0 3px #16a34a; }
+    100% { box-shadow: 0 0 0 3px rgba(22,163,74,0); }
+  }
+  .point-card.just-saved { animation: flashHighlight 1.8s ease-out; }
 
-.tab {
-  flex: 1;
-  padding: 12px 8px;
-  border: none;
-  background: white;
-  font-size: 13px;
-  font-weight: 700;
-  color: #6b7280;
-  border-bottom: 3px solid transparent;
-}
-
-.tab.active {
-  color: #1e40af;
-  border-bottom-color: #1e40af;
-}
-
-main {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 14px;
-}
-
-.card {
-  background: white;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 14px;
-  box-shadow: 0 1px 3px rgba(0,0,0,.08);
-}
-
-.card h2 {
-  margin: 0 0 5px;
-  font-size: 17px;
-}
-
-.subhint {
-  margin: 0 0 12px;
-  color: #9ca3af;
-  font-size: 12px;
-}
-
-.btn {
-  width: 100%;
-  border: none;
-  border-radius: 9px;
-  padding: 13px;
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 9px;
-}
-
-.btn-primary {
-  background: #2563eb;
-  color: white;
-}
-
-.btn-secondary {
-  background: #4b5563;
-  color: white;
-}
-
-.btn-success {
-  background: #16a34a;
-  color: white;
-}
-
-.btn-danger {
-  background: #dc2626;
-  color: white;
-}
-
-.btn-light {
-  background: #f9fafb;
-  color: #374151;
-  border: 1px solid #e5e7eb;
-}
-
-.btn:disabled {
-  background: #d1d5db;
-  color: #9ca3af;
-}
-
-input[type="text"],
-textarea,
-select {
-  width: 100%;
-  padding: 11px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 15px;
-  background: white;
-  font-family: inherit;
-}
-
-label.field-label {
-  display: block;
-  margin: 12px 0 6px;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.inline-row {
-  display: flex;
-  gap: 9px;
-}
-
-.inline-row > * {
-  flex: 1;
-}
-
-.list-card {
-  background: white;
-  border-radius: 12px;
-  margin-bottom: 10px;
-  box-shadow: 0 1px 3px rgba(0,0,0,.07);
-  overflow: hidden;
-}
-
-.list-main {
-  padding: 14px;
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.list-main button {
-  border: none;
-  background: none;
-  padding: 0;
-  text-align: left;
-  flex: 1;
-}
-
-.list-title {
-  font-weight: 800;
-  font-size: 15px;
-  color: #111827;
-}
-
-.list-sub {
-  margin-top: 4px;
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.list-actions {
-  display: flex;
-  border-top: 1px solid #e5e7eb;
-}
-
-.list-actions button {
-  flex: 1;
-  border: none;
-  background: white;
-  padding: 10px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.list-actions .danger {
-  color: #dc2626;
-}
-
-.list-actions .export {
-  color: #2563eb;
-}
-
-.badge {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-  margin: 2px 4px 2px 0;
-}
-
-.badge-blue {
-  background: #dbeafe;
-  color: #1e40af;
-}
-
-.badge-orange {
-  background: #fed7aa;
-  color: #9a3412;
-}
-
-.badge-purple {
-  background: #e9d5ff;
-  color: #6b21a8;
-}
-
-.badge-green {
-  background: #bbf7d0;
-  color: #14532d;
-}
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
-  gap: 8px;
-}
-
-.stat {
-  background: #f9fafb;
-  border-radius: 10px;
-  padding: 11px;
-  text-align: center;
-}
-
-.stat strong {
-  display: block;
-  font-size: 18px;
-  color: #111827;
-}
-
-.stat span {
-  font-size: 11px;
-  color: #6b7280;
-}
-
-.thumb-grid {
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.thumb-wrap {
-  position: relative;
-  aspect-ratio: 1;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #f3f4f6;
-}
-
-.thumb-wrap img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.thumb-remove {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 24px;
-  height: 24px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(0,0,0,.7);
-  color: white;
-}
-
-.thumb-count {
-  position: absolute;
-  left: 4px;
-  bottom: 4px;
-  background: rgba(37,99,235,.9);
-  color: white;
-  border-radius: 10px;
-  padding: 2px 6px;
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.checkbox-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 11px;
-  background: #f9fafb;
-  border-radius: 8px;
-  margin-top: 8px;
-}
-
-.checkbox-row input {
-  width: 20px;
-  height: 20px;
-}
-
-.gps-status {
-  margin-top: 10px;
-  padding: 10px;
-  border-radius: 8px;
-  background: #eff6ff;
-  color: #1e40af;
-  font-size: 12px;
-  font-weight: 700;
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.gps-status button {
-  border: none;
-  background: none;
-  color: #2563eb;
-  font-weight: 800;
-}
-
-.gallery-photos {
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
-  gap: 2px;
-  background: #e5e7eb;
-}
-
-.gallery-photos img {
-  width: 100%;
-  height: 115px;
-  object-fit: cover;
-}
-
-.point-info {
-  padding: 13px;
-}
-
-.toast {
-  position: fixed;
-  left: 50%;
-  bottom: 24px;
-  transform: translateX(-50%) translateY(20px);
-  background: #111827;
-  color: white;
-  padding: 11px 16px;
-  border-radius: 9px;
-  z-index: 100;
-  opacity: 0;
-  transition: .2s;
-  pointer-events: none;
-  max-width: calc(100% - 30px);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.toast.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-
-.empty {
-  padding: 28px 16px;
-  text-align: center;
-  color: #6b7280;
-}
-
-.hidden {
-  display: none !important;
-}
-
-input[type="file"] {
-  display: none;
-}
-
-.storage-warning {
-  display: none;
-  background: #fef9c3;
-  color: #854d0e;
-  padding: 10px;
-  border-radius: 8px;
-  font-size: 12px;
-  margin-bottom: 12px;
-}
-
-.section-title {
-  font-size: 13px;
-  font-weight: 800;
-  color: #4b5563;
-  margin: 4px 0 9px;
-  text-transform: uppercase;
-  letter-spacing: .04em;
-}
-
-.context-box {
-  padding: 11px;
-  border-radius: 9px;
-  background: #eff6ff;
-  margin-bottom: 12px;
-}
-
-.context-box strong {
-  color: #1e40af;
-}
-
-.small {
-  font-size: 12px;
-  color: #6b7280;
-}
+  .load-more-btn { background: white; color: #2563eb; border: 1px dashed #93c5fd; }
 </style>
 </head>
-
 <body>
 
 <header>
-  <button class="header-btn hidden" id="backBtn" onclick="navigateBack()">←</button>
-  <h1 id="pageTitle">Project Photo Tracker</h1>
-  <button class="header-btn" onclick="goHome()">⌂</button>
+  <button class="back-btn" id="backBtn" onclick="history.back()">←</button>
+  <h1 id="pageTitle">Photo Tagger</h1>
 </header>
-
-<div class="breadcrumbs" id="breadcrumbs">Home</div>
-
-<div class="tabs">
-  <button class="tab active" id="tabBrowse" onclick="setMainTab('browse')">Browse</button>
-  <button class="tab" id="tabCapture" onclick="setMainTab('capture')">Capture</button>
-  <button class="tab" id="tabGallery" onclick="setMainTab('gallery')">Gallery</button>
-</div>
 
 <div class="toast" id="toast"></div>
 
+<div class="tabs">
+  <button class="tab active" id="tabCapture" onclick="goTo('capture')">Capture & Tag</button>
+  <button class="tab" id="tabGallery" onclick="goTo('gallery')">Gallery (<span id="photoCount">0</span>)</button>
+</div>
+
 <main>
 
-<div id="storageWarning" class="storage-warning"></div>
+  <div id="storageWarning" class="storage-warning" style="display:none;"></div>
 
-<section id="viewBrowse">
-
-  <div class="card" id="resumeCard" style="display:none;">
-    <h2>Resume Last Work Order</h2>
-    <p class="subhint">Continue where you left off without re-entering anything.</p>
-
-    <div id="resumeText" class="context-box"></div>
-
-    <button class="btn btn-primary" onclick="resumeLastWorkOrder()">
-      Continue →
-    </button>
-  </div>
-
-  <div id="browseContent"></div>
-
-</section>
-
-
-<section id="viewCapture" class="hidden">
-
-  <div id="captureNoContext" class="card hidden">
-
-    <h2>Select a Work Order First</h2>
-
-    <p class="subhint">
-      Choose a project and work order before taking photos.
-    </p>
-
-    <button class="btn btn-primary" onclick="setMainTab('browse')">
-      Browse Projects
-    </button>
-
-  </div>
-
-
-  <div id="captureContext" class="hidden">
-
+  <!-- CAPTURE VIEW -->
+  <div id="view-capture">
     <div class="card">
-
-      <h2>Current Work Order</h2>
-
-      <div class="context-box" id="captureContextText"></div>
-
-      <button class="btn btn-light" onclick="setMainTab('browse')">
-        Change Project / Work Order
-      </button>
-
-    </div>
-
-
-    <div class="card">
-
       <h2>Photos for this Point</h2>
-
-      <p class="subhint">
-        Project and work order are already selected. Just name the point and take your photos.
-      </p>
+      <p class="subhint">Take as many as you need, then tag them all at once below</p>
 
       <div class="thumb-grid" id="thumbGrid"></div>
 
-      <button
-        class="btn btn-primary"
-        onclick="document.getElementById('cameraInput').click()"
-      >
-        📷 Take Photo
-      </button>
+      <button class="btn btn-primary" onclick="document.getElementById('cameraInput').click()">📷 Take Photo</button>
+      <input type="file" id="cameraInput" accept="image/*" capture="environment">
+      <button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">📁 Upload Photo(s)</button>
+      <input type="file" id="fileInput" accept="image/*" multiple>
 
-      <input
-        type="file"
-        id="cameraInput"
-        accept="image/*"
-        capture="environment"
-      >
-
-      <button
-        class="btn btn-secondary"
-        onclick="document.getElementById('fileInput').click()"
-      >
-        📁 Upload Photo(s)
-      </button>
-
-      <input
-        type="file"
-        id="fileInput"
-        accept="image/*"
-        multiple
-      >
-
-      <div class="gps-status">
-
-        <span id="gpsStatusText">
-          📍 No location captured yet
-        </span>
-
-        <button onclick="requestLocation(true)">
-          Update
-        </button>
-
+      <div class="gps-status" id="gpsStatus">
+        <span id="gpsStatusText">📍 No location captured yet</span>
+        <button onclick="requestLocation(true)">Update</button>
       </div>
-
     </div>
-
 
     <div class="card">
-
-      <h2>Point Details</h2>
-
-      <label class="field-label">
-        Point / Pole Name
-      </label>
-
-      <input
-        type="text"
-        id="pointName"
-        placeholder="e.g., Pole 23, P-001"
-      >
-
-      <p class="small" id="pointSuggestion"></p>
-
+      <h2>Add Tags</h2>
+      <div id="editingBanner" style="display:none; background:#fef3c7; color:#92400e; padding:10px 12px; border-radius:8px; font-size:13px; font-weight:600; margin-bottom:12px;">
+        ✏️ Editing an existing point
+      </div>
+      <p class="subhint">Applied to all photos above, and stamped directly onto each photo when exported</p>
+      <label class="field-label" style="margin-top:0;">Project ID (Point / Pole Name)</label>
+      <input type="text" id="projectId" placeholder="e.g., P-01, WO-123, Circuit-A" value="P-">
+      <p class="hint">Photos are organized by this ID</p>
 
       <div class="checkbox-row">
-
-        <input
-          type="checkbox"
-          id="trafficControl"
-        >
-
-        <span>
-          Traffic Control Required
-        </span>
-
+        <input type="checkbox" id="trafficControl">
+        <span>Traffic Control Required</span>
       </div>
-
-
       <div class="checkbox-row">
-
-        <input
-          type="checkbox"
-          id="hydrovac"
-        >
-
-        <span>
-          Hydrovac Needed
-        </span>
-
+        <input type="checkbox" id="hydrovac">
+        <span>Hydrovac Needed</span>
       </div>
-
-
       <div class="checkbox-row">
-
-        <input
-          type="checkbox"
-          id="accessibilityIssue"
-        >
-
-        <span>
-          Accessibility Issue
-        </span>
-
+        <input type="checkbox" id="accessibilityIssue">
+        <span>Accessibility Issue</span>
       </div>
 
+      <label class="field-label">Additional Notes</label>
+      <textarea id="notes" rows="3" placeholder="Pole condition, equipment details, etc."></textarea>
 
-      <label class="field-label">
-        Additional Notes
-      </label>
+      <button class="btn btn-success" id="saveBtn" style="margin-top:14px;" onclick="savePoint()" disabled>💾 <span id="saveBtnLabel">Save Point & Tags</span></button>
+      <button class="btn btn-secondary" id="cancelEditBtn" onclick="cancelEdit()" style="display:none;">Cancel Edit</button>
 
-      <textarea
-        id="notes"
-        rows="3"
-        placeholder="Pole condition, equipment details, access notes, etc."
-      ></textarea>
-
-
-      <button
-        class="btn btn-success"
-        id="savePointBtn"
-        onclick="savePoint()"
-        disabled
-      >
-        💾 Save Point
-      </button>
-
-
-      <button
-        class="btn btn-danger"
-        id="clearPhotosBtn"
-        onclick="clearStaged()"
-        style="display:none;"
-      >
-        Clear Photos
-      </button>
-
+      <div class="checkbox-row" style="margin-top:16px;">
+        <input type="checkbox" id="stayOnCapture">
+        <span>Stay here after saving (for back-to-back points)</span>
+      </div>
+      <button class="btn btn-danger" id="clearAllBtn" onclick="clearStaged()" style="display:none;">Clear All Photos</button>
     </div>
-
   </div>
 
-</section>
-
-
-<section id="viewGallery" class="hidden">
-
-  <div class="card">
-
-    <h2>Photo Gallery</h2>
-
-
-    <label class="field-label">
-      Project
-    </label>
-
-    <select
-      id="galleryProjectFilter"
-      onchange="galleryFilterChanged()"
-    ></select>
-
-
-    <label class="field-label">
-      Work Order
-    </label>
-
-    <select
-      id="galleryWorkOrderFilter"
-      onchange="renderGallery()"
-    ></select>
-
-
-    <label class="field-label">
-      Search Point / Notes
-    </label>
-
-    <input
-      type="text"
-      id="gallerySearch"
-      placeholder="Pole 23, gate locked, hydrovac..."
-      oninput="renderGallery()"
-    >
-
-
-    <label class="field-label">
-      Export Format
-    </label>
-
-    <select id="exportFormat">
-
-      <option value="jpeg">
-        JPEG
-      </option>
-
-      <option value="png">
-        PNG
-      </option>
-
-      <option value="pdf">
-        PDF
-      </option>
-
-    </select>
-
-
-    <div
-      class="inline-row"
-      style="margin-top:12px;"
-    >
-
-      <button
-        class="btn btn-primary"
-        onclick="exportFiltered()"
-      >
-        Export Shown
-      </button>
-
-      <button
-        class="btn btn-secondary"
-        onclick="exportCurrentWorkOrder()"
-      >
-        Export Work Order
-      </button>
-
+  <!-- GALLERY VIEW -->
+  <div id="view-gallery" style="display:none;">
+    <div class="card">
+      <div class="search-grid">
+        <div>
+          <label class="field-label" style="margin-top:0;">Search by Project ID</label>
+          <input type="text" id="searchProject" placeholder="e.g., P-01, WO-123" oninput="onSearchChange()">
+        </div>
+        <div>
+          <label class="field-label">Search by Tags/Notes</label>
+          <input type="text" id="searchTerm" placeholder="Search or type: traffic control, hydrovac, accessibility issue" oninput="onSearchChange()">
+        </div>
+        <div>
+          <label class="field-label">Export Format</label>
+          <select id="exportFormat">
+            <option value="jpeg">JPEG (photo + tags stamped on)</option>
+            <option value="png">PNG (photo + tags stamped on)</option>
+            <option value="pdf">PDF (one combined file)</option>
+          </select>
+        </div>
+      </div>
+      <div class="action-row">
+        <button class="btn btn-primary" id="exportShownBtn" onclick="exportPoints(getFilteredPoints(), document.getElementById('exportFormat').value)">⬇ Export Shown</button>
+        <button class="btn btn-secondary" id="exportAllBtn" onclick="exportAllFromDB()" style="display:none;">⬇ Export All</button>
+      </div>
     </div>
 
+    <div id="galleryList"></div>
+    <button class="btn load-more-btn" id="loadMoreBtn" onclick="loadMoreResults()" style="display:none;">Load More</button>
   </div>
-
-
-  <div id="galleryContent"></div>
-
-</section>
 
 </main>
 
-
 <script>
+window.addEventListener('error', (e) => {
+  console.error('App error:', e.error || e.message);
+  const banner = document.createElement('div');
+  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#dc2626;color:white;padding:12px 16px;font-size:13px;font-weight:600;z-index:999;';
+  banner.textContent = 'App error: ' + (e.message || 'something went wrong') + ' — reload the page and try again.';
+  document.body.prepend(banner);
+});
 
-const DB_NAME = "projectPhotoTrackerDB";
+// =========================================================================
+// STORAGE — IndexedDB
+// localStorage caps out around 5-10MB total, which cannot hold anywhere
+// near 1000 photos. IndexedDB has a far larger quota (typically hundreds of
+// MB to several GB depending on device) and stores each point as its own
+// record instead of one giant blob, so saves stay fast even at scale.
+// =========================================================================
+const DB_NAME = 'photoTaggerDB';
 const DB_VERSION = 1;
-
-const STORE_PROJECTS = "projects";
-const STORE_WORKORDERS = "workorders";
-const STORE_POINTS = "points";
-const STORE_PHOTOS = "photos";
-const STORE_DRAFT = "draft";
-const STORE_SETTINGS = "settings";
+const STORE_NAME = 'points';
+const OLD_LOCALSTORAGE_KEY_V2 = 'photoTaggerPoints_v2';
+const OLD_LOCALSTORAGE_KEY_V1 = 'photoTaggerPhotos_v1';
+const DRAFT_KEY = 'photoTaggerDraft_v3';
 
 let dbPromise = null;
-
-let state = {
-
-  mainTab:
-    "browse",
-
-  browseLevel:
-    "projects",
-
-  selectedProjectId:
-    null,
-
-  selectedWorkOrderId:
-    null,
-
-  lastWorkOrderId:
-    null
-
-};
-
-
-let projects = [];
-let workOrders = [];
-let points = [];
-
-let stagedPhotos = [];
-let stagedGps = null;
-
-let draftTimer = null;
-let toastTimer = null;
-
-
-/* ============================================================
-   DATABASE
-   ============================================================ */
-
 function openDB() {
-
-  if (
-    dbPromise
-  ) {
-
-    return dbPromise;
-
-  }
-
-
-  dbPromise =
-    new Promise(
-      (
-        resolve,
-        reject
-      ) => {
-
-        const request =
-          indexedDB.open(
-            DB_NAME,
-            DB_VERSION
-          );
-
-
-        request.onupgradeneeded =
-          event => {
-
-            const db =
-              event.target.result;
-
-
-            if (
-              !db.objectStoreNames.contains(
-                STORE_PROJECTS
-              )
-            ) {
-
-              db.createObjectStore(
-                STORE_PROJECTS,
-                {
-                  keyPath:
-                    "id"
-                }
-              );
-
-            }
-
-
-            if (
-              !db.objectStoreNames.contains(
-                STORE_WORKORDERS
-              )
-            ) {
-
-              const store =
-                db.createObjectStore(
-                  STORE_WORKORDERS,
-                  {
-                    keyPath:
-                      "id"
-                  }
-                );
-
-
-              store.createIndex(
-                "projectId",
-                "projectId",
-                {
-                  unique:
-                    false
-                }
-              );
-
-            }
-
-
-            if (
-              !db.objectStoreNames.contains(
-                STORE_POINTS
-              )
-            ) {
-
-              const store =
-                db.createObjectStore(
-                  STORE_POINTS,
-                  {
-                    keyPath:
-                      "id"
-                  }
-                );
-
-
-              store.createIndex(
-                "workOrderId",
-                "workOrderId",
-                {
-                  unique:
-                    false
-                }
-              );
-
-
-              store.createIndex(
-                "projectId",
-                "projectId",
-                {
-                  unique:
-                    false
-                }
-              );
-
-            }
-
-
-            if (
-              !db.objectStoreNames.contains(
-                STORE_PHOTOS
-              )
-            ) {
-
-              const store =
-                db.createObjectStore(
-                  STORE_PHOTOS,
-                  {
-                    keyPath:
-                      "id"
-                  }
-                );
-
-
-              store.createIndex(
-                "pointId",
-                "pointId",
-                {
-                  unique:
-                    false
-                }
-              );
-
-
-              store.createIndex(
-                "workOrderId",
-                "workOrderId",
-                {
-                  unique:
-                    false
-                }
-              );
-
-
-              store.createIndex(
-                "projectId",
-                "projectId",
-                {
-                  unique:
-                    false
-                }
-              );
-
-            }
-
-
-            if (
-              !db.objectStoreNames.contains(
-                STORE_DRAFT
-              )
-            ) {
-
-              db.createObjectStore(
-                STORE_DRAFT,
-                {
-                  keyPath:
-                    "id"
-                }
-              );
-
-            }
-
-
-            if (
-              !db.objectStoreNames.contains(
-                STORE_SETTINGS
-              )
-            ) {
-
-              db.createObjectStore(
-                STORE_SETTINGS,
-                {
-                  keyPath:
-                    "id"
-                }
-              );
-
-            }
-
-          };
-
-
-        request.onsuccess =
-          () => {
-
-            resolve(
-              request.result
-            );
-
-          };
-
-
-        request.onerror =
-          () => {
-
-            reject(
-              request.error
-            );
-
-          };
-
+  if (dbPromise) return dbPromise;
+  dbPromise = new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
       }
-    );
-
-
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
   return dbPromise;
-
 }
 
-
-async function getAll(
-  storeName
-) {
-
-  const db =
-    await openDB();
-
-
-  return new Promise(
-    (
-      resolve,
-      reject
-    ) => {
-
-      const transaction =
-        db.transaction(
-          storeName,
-          "readonly"
-        );
-
-
-      const request =
-        transaction
-          .objectStore(
-            storeName
-          )
-          .getAll();
-
-
-      request.onsuccess =
-        () => {
-
-          resolve(
-            request.result ||
-            []
-          );
-
-        };
-
-
-      request.onerror =
-        () => {
-
-          reject(
-            request.error
-          );
-
-        };
-
-    }
-  );
-
+async function dbGetAll() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const req = tx.objectStore(STORE_NAME).getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  });
 }
 
-
-async function getOne(
-  storeName,
-  key
-) {
-
-  const db =
-    await openDB();
-
-
-  return new Promise(
-    (
-      resolve,
-      reject
-    ) => {
-
-      const transaction =
-        db.transaction(
-          storeName,
-          "readonly"
-        );
-
-
-      const request =
-        transaction
-          .objectStore(
-            storeName
-          )
-          .get(key);
-
-
-      request.onsuccess =
-        () => {
-
-          resolve(
-            request.result ||
-            null
-          );
-
-        };
-
-
-      request.onerror =
-        () => {
-
-          reject(
-            request.error
-          );
-
-        };
-
-    }
-  );
-
+async function dbPut(point) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    tx.objectStore(STORE_NAME).put(point);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
+  });
 }
 
-
-async function putOne(
-  storeName,
-  value
-) {
-
-  const db =
-    await openDB();
-
-
-  return new Promise(
-    (
-      resolve,
-      reject
-    ) => {
-
-      const transaction =
-        db.transaction(
-          storeName,
-          "readwrite"
-        );
-
-
-      transaction
-        .objectStore(
-          storeName
-        )
-        .put(value);
-
-
-      transaction.oncomplete =
-        () => {
-
-          resolve(true);
-
-        };
-
-
-      transaction.onerror =
-        () => {
-
-          reject(
-            transaction.error
-          );
-
-        };
-
-    }
-  );
-
+async function dbDelete(id) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    tx.objectStore(STORE_NAME).delete(id);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
+  });
 }
 
-
-async function deleteOneRecord(
-  storeName,
-  key
-) {
-
-  const db =
-    await openDB();
-
-
-  return new Promise(
-    (
-      resolve,
-      reject
-    ) => {
-
-      const transaction =
-        db.transaction(
-          storeName,
-          "readwrite"
-        );
-
-
-      transaction
-        .objectStore(
-          storeName
-        )
-        .delete(key);
-
-
-      transaction.oncomplete =
-        () => {
-
-          resolve(true);
-
-        };
-
-
-      transaction.onerror =
-        () => {
-
-          reject(
-            transaction.error
-          );
-
-        };
-
-    }
-  );
-
+async function dbCount() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const req = tx.objectStore(STORE_NAME).count();
+    req.onsuccess = () => resolve(req.result || 0);
+    req.onerror = () => reject(req.error);
+  });
 }
 
-
-async function getByIndex(
-  storeName,
-  indexName,
-  value
-) {
-
-  const db =
-    await openDB();
-
-
-  return new Promise(
-    (
-      resolve,
-      reject
-    ) => {
-
-      const transaction =
-        db.transaction(
-          storeName,
-          "readonly"
-        );
-
-
-      const index =
-        transaction
-          .objectStore(
-            storeName
-          )
-          .index(
-            indexName
-          );
-
-
-      const request =
-        index.getAll(
-          IDBKeyRange.only(
-            value
-          )
-        );
-
-
-      request.onsuccess =
-        () => {
-
-          resolve(
-            request.result ||
-            []
-          );
-
-        };
-
-
-      request.onerror =
-        () => {
-
-          reject(
-            request.error
-          );
-
-        };
-
-    }
-  );
-
-}
-
-
-/* ============================================================
-   HELPERS
-   ============================================================ */
-
-function makeId(
-  prefix
-) {
-
-  return (
-    prefix +
-    "_" +
-    Date.now() +
-    "_" +
-    Math.random()
-      .toString(36)
-      .slice(2,8)
-  );
-
-}
-
-
-function escapeHtml(
-  value
-) {
-
-  const div =
-    document.createElement(
-      "div"
-    );
-
-
-  div.textContent =
-    value == null
-      ? ""
-      : String(value);
-
-
-  return div.innerHTML;
-
-}
-
-
-function sanitizeName(
-  name
-) {
-
-  return (
-    name ||
-    "Unlabeled"
-  )
-    .trim()
-    .replace(
-      /[\/\\?%*:|"<>]/g,
-      "-"
-    );
-
-}
-
-
-function showToast(
-  message,
-  sticky = false
-) {
-
-  const element =
-    document.getElementById(
-      "toast"
-    );
-
-
-  element.textContent =
-    message;
-
-
-  element.classList.add(
-    "show"
-  );
-
-
-  clearTimeout(
-    toastTimer
-  );
-
-
-  if (
-    !sticky
-  ) {
-
-    toastTimer =
-      setTimeout(
-        () => {
-
-          element.classList.remove(
-            "show"
-          );
-
-        },
-        2200
-      );
-
-  }
-
-}
-
-
-function hideToast() {
-
-  document
-    .getElementById(
-      "toast"
-    )
-    .classList
-    .remove(
-      "show"
-    );
-
-}
-
-
-function getSelectedProject() {
-
-  return (
-    projects.find(
-      project =>
-        project.id ===
-        state.selectedProjectId
-    ) ||
-    null
-  );
-
-}
-
-
-function getSelectedWorkOrder() {
-
-  return (
-    workOrders.find(
-      workOrder =>
-        workOrder.id ===
-        state.selectedWorkOrderId
-    ) ||
-    null
-  );
-
-}
-
-
-function getProjectById(
-  id
-) {
-
-  return (
-    projects.find(
-      project =>
-        project.id === id
-    ) ||
-    null
-  );
-
-}
-
-
-function getWorkOrderById(
-  id
-) {
-
-  return (
-    workOrders.find(
-      workOrder =>
-        workOrder.id === id
-    ) ||
-    null
-  );
-
-}
-
-
-function projectWorkOrders(
-  projectId
-) {
-
-  return workOrders.filter(
-    workOrder =>
-      workOrder.projectId ===
-      projectId
-  );
-
-}
-
-
-function workOrderPoints(
-  workOrderId
-) {
-
-  return points.filter(
-    point =>
-      point.workOrderId ===
-      workOrderId
-  );
-
-}
-
-
-/* ============================================================
-   HEADER / NAVIGATION
-   ============================================================ */
-
-function updateBreadcrumbs() {
-
-  const project =
-    getSelectedProject();
-
-
-  const workOrder =
-    getSelectedWorkOrder();
-
-
-  let text =
-    "Home";
-
-
-  if (
-    project
-  ) {
-
-    text +=
-      " › " +
-      project.name;
-
-  }
-
-
-  if (
-    workOrder
-  ) {
-
-    text +=
-      " › " +
-      workOrder.number;
-
-  }
-
-
-  document.getElementById(
-    "breadcrumbs"
-  ).textContent =
-    text;
-
-
-  const backButton =
-    document.getElementById(
-      "backBtn"
-    );
-
-
-  backButton.classList.toggle(
-    "hidden",
-    !project &&
-    state.browseLevel ===
-      "projects"
-  );
-
-}
-
-
-function updateHeader() {
-
-  let title =
-    "Project Photo Tracker";
-
-
-  if (
-    state.mainTab ===
-    "capture"
-  ) {
-
-    title =
-      "Capture Point";
-
-  }
-
-
-  if (
-    state.mainTab ===
-    "gallery"
-  ) {
-
-    title =
-      "Gallery";
-
-  }
-
-
-  if (
-    state.mainTab ===
-    "browse"
-  ) {
-
-    if (
-      state.browseLevel ===
-      "projects"
-    ) {
-
-      title =
-        "Projects";
-
-    }
-
-
-    if (
-      state.browseLevel ===
-      "workorders"
-    ) {
-
-      title =
-        "Work Orders";
-
-    }
-
-
-    if (
-      state.browseLevel ===
-      "points"
-    ) {
-
-      title =
-        "Points";
-
-    }
-
-  }
-
-
-  document.getElementById(
-    "pageTitle"
-  ).textContent =
-    title;
-
-}
-
-
-function setMainTab(
-  tab
-) {
-
-  state.mainTab =
-    tab;
-
-
-  document.getElementById(
-    "viewBrowse"
-  ).classList.toggle(
-    "hidden",
-    tab !== "browse"
-  );
-
-
-  document.getElementById(
-    "viewCapture"
-  ).classList.toggle(
-    "hidden",
-    tab !== "capture"
-  );
-
-
-  document.getElementById(
-    "viewGallery"
-  ).classList.toggle(
-    "hidden",
-    tab !== "gallery"
-  );
-
-
-  document.getElementById(
-    "tabBrowse"
-  ).classList.toggle(
-    "active",
-    tab === "browse"
-  );
-
-
-  document.getElementById(
-    "tabCapture"
-  ).classList.toggle(
-    "active",
-    tab === "capture"
-  );
-
-
-  document.getElementById(
-    "tabGallery"
-  ).classList.toggle(
-    "active",
-    tab === "gallery"
-  );
-
-
-  if (
-    tab ===
-    "browse"
-  ) {
-
-    renderBrowse();
-
-  }
-
-
-  if (
-    tab ===
-    "capture"
-  ) {
-
-    renderCaptureContext();
-
-  }
-
-
-  if (
-    tab ===
-    "gallery"
-  ) {
-
-    setupGalleryFilters();
-
-  }
-
-
-  updateHeader();
-
-  updateBreadcrumbs();
-
-}
-
-
-function goHome() {
-
-  state.mainTab =
-    "browse";
-
-
-  state.browseLevel =
-    "projects";
-
-
-  state.selectedProjectId =
-    null;
-
-
-  state.selectedWorkOrderId =
-    null;
-
-
-  setMainTab(
-    "browse"
-  );
-
-}
-
-
-function navigateBack() {
-
-  if (
-    state.mainTab !==
-    "browse"
-  ) {
-
-    setMainTab(
-      "browse"
-    );
-
-    return;
-
-  }
-
-
-  if (
-    state.browseLevel ===
-    "points"
-  ) {
-
-    state.browseLevel =
-      "workorders";
-
-
-    state.selectedWorkOrderId =
-      null;
-
-  } else if (
-    state.browseLevel ===
-    "workorders"
-  ) {
-
-    state.browseLevel =
-      "projects";
-
-
-    state.selectedProjectId =
-      null;
-
-  }
-
-
-  renderBrowse();
-
-}
-
-
-/* ============================================================
-   SETTINGS / RESUME
-   ============================================================ */
-
-async function saveSettings() {
-
-  await putOne(
-    STORE_SETTINGS,
-    {
-
-      id:
-        "app",
-
-      lastProjectId:
-        state.selectedProjectId,
-
-      lastWorkOrderId:
-        state.selectedWorkOrderId
-
-    }
-  );
-
-}
-
-
-async function loadSettings() {
-
-  const settings =
-    await getOne(
-      STORE_SETTINGS,
-      "app"
-    );
-
-
-  if (
-    settings
-  ) {
-
-    state.lastWorkOrderId =
-      settings.lastWorkOrderId ||
-      null;
-
-  }
-
-}
-
-
-function renderResume() {
-
-  const card =
-    document.getElementById(
-      "resumeCard"
-    );
-
-
-  if (
-    !state.lastWorkOrderId
-  ) {
-
-    card.style.display =
-      "none";
-
-    return;
-
-  }
-
-
-  const workOrder =
-    getWorkOrderById(
-      state.lastWorkOrderId
-    );
-
-
-  if (
-    !workOrder
-  ) {
-
-    card.style.display =
-      "none";
-
-    return;
-
-  }
-
-
-  const project =
-    getProjectById(
-      workOrder.projectId
-    );
-
-
-  if (
-    !project
-  ) {
-
-    card.style.display =
-      "none";
-
-    return;
-
-  }
-
-
-  document.getElementById(
-    "resumeText"
-  ).innerHTML =
-    `
-      <strong>
-        ${escapeHtml(project.name)}
-      </strong>
-      <br>
-
-      Work Order:
-      ${escapeHtml(workOrder.number)}
-
-      <br>
-
-      <span class="small">
-        ${workOrderPoints(workOrder.id).length}
-        saved point(s)
-      </span>
-    `;
-
-
-  card.style.display =
-    "block";
-
-}
-
-
-function resumeLastWorkOrder() {
-
-  const workOrder =
-    getWorkOrderById(
-      state.lastWorkOrderId
-    );
-
-
-  if (
-    !workOrder
-  ) {
-
-    return;
-
-  }
-
-
-  state.selectedProjectId =
-    workOrder.projectId;
-
-
-  state.selectedWorkOrderId =
-    workOrder.id;
-
-
-  state.browseLevel =
-    "points";
-
-
-  setMainTab(
-    "capture"
-  );
-
-}
-
-
-/* ============================================================
-   BROWSE
-   ============================================================ */
-
-function renderBrowse() {
-
-  renderResume();
-
-
-  if (
-    state.browseLevel ===
-    "projects"
-  ) {
-
-    renderProjects();
-
-  }
-
-
-  if (
-    state.browseLevel ===
-    "workorders"
-  ) {
-
-    renderWorkOrders();
-
-  }
-
-
-  if (
-    state.browseLevel ===
-    "points"
-  ) {
-
-    renderPoints();
-
-  }
-
-
-  updateHeader();
-
-  updateBreadcrumbs();
-
-}
-
-
-/* ============================================================
-   PROJECTS
-   ============================================================ */
-
-function renderProjects() {
-
-  const element =
-    document.getElementById(
-      "browseContent"
-    );
-
-
-  const totalPhotos =
-    points.reduce(
-      (
-        sum,
-        point
-      ) =>
-        sum +
-        (
-          point.photoCount ||
-          0
-        ),
-      0
-    );
-
-
-  let html =
-    `
-      <div class="card">
-
-        <h2>
-          Projects
-        </h2>
-
-        <p class="subhint">
-          Create each project once. Then organize work orders underneath it.
-        </p>
-
-        <div class="stats">
-
-          <div class="stat">
-            <strong>
-              ${projects.length}
-            </strong>
-            <span>
-              Projects
-            </span>
-          </div>
-
-          <div class="stat">
-            <strong>
-              ${workOrders.length}
-            </strong>
-            <span>
-              Work Orders
-            </span>
-          </div>
-
-          <div class="stat">
-            <strong>
-              ${totalPhotos}
-            </strong>
-            <span>
-              Photos
-            </span>
-          </div>
-
-        </div>
-
-
-        <label class="field-label">
-          New Project Name
-        </label>
-
-        <input
-          type="text"
-          id="newProjectName"
-          placeholder="e.g., Crystal Phase II"
-        >
-
-
-        <button
-          class="btn btn-primary"
-          style="margin-top:10px;"
-          onclick="createProject()"
-        >
-          + New Project
-        </button>
-
-      </div>
-    `;
-
-
-  if (
-    projects.length === 0
-  ) {
-
-    html +=
-      `
-        <div class="card empty">
-          No projects yet.
-        </div>
-      `;
-
-  } else {
-
-    html +=
-      `
-        <div class="section-title">
-          Projects
-        </div>
-      `;
-
-
-    for (
-      const project of
-      projects
-        .slice()
-        .sort(
-          (
-            a,
-            b
-          ) =>
-            b.createdAt -
-            a.createdAt
-        )
-    ) {
-
-      const projectWorkOrderList =
-        projectWorkOrders(
-          project.id
-        );
-
-
-      const projectPoints =
-        points.filter(
-          point =>
-            point.projectId ===
-            project.id
-        );
-
-
-      const photos =
-        projectPoints.reduce(
-          (
-            sum,
-            point
-          ) =>
-            sum +
-            (
-              point.photoCount ||
-              0
-            ),
-          0
-        );
-
-
-      html +=
-        `
-          <div class="list-card">
-
-            <div class="list-main">
-
-              <button
-                onclick="openProject('${project.id}')"
-              >
-
-                <div class="list-title">
-                  ${escapeHtml(project.name)}
-                </div>
-
-                <div class="list-sub">
-                  ${projectWorkOrderList.length}
-                  work order(s)
-                  •
-                  ${projectPoints.length}
-                  point(s)
-                  •
-                  ${photos}
-                  photo(s)
-                </div>
-
-              </button>
-
-            </div>
-
-
-            <div class="list-actions">
-
-              <button
-                class="export"
-                onclick="exportProject('${project.id}')"
-              >
-                Export
-              </button>
-
-              <button
-                class="danger"
-                onclick="deleteProject('${project.id}')"
-              >
-                Delete
-              </button>
-
-            </div>
-
-          </div>
-        `;
-
-    }
-
-  }
-
-
-  element.innerHTML =
-    html;
-
-}
-
-
-async function createProject() {
-
-  const input =
-    document.getElementById(
-      "newProjectName"
-    );
-
-
-  const name =
-    input.value.trim();
-
-
-  if (
-    !name
-  ) {
-
-    alert(
-      "Enter a project name."
-    );
-
-    return;
-
-  }
-
-
-  const project = {
-
-    id:
-      makeId(
-        "project"
-      ),
-
-    name,
-
-    createdAt:
-      Date.now()
-
-  };
-
-
-  await putOne(
-    STORE_PROJECTS,
-    project
-  );
-
-
-  projects.push(
-    project
-  );
-
-
-  input.value =
-    "";
-
-
-  renderProjects();
-
-
-  showToast(
-    "Project created"
-  );
-
-}
-
-
-function openProject(
-  id
-) {
-
-  state.selectedProjectId =
-    id;
-
-
-  state.selectedWorkOrderId =
-    null;
-
-
-  state.browseLevel =
-    "workorders";
-
-
-  renderBrowse();
-
-}
-
-
-/* ============================================================
-   WORK ORDERS
-   ============================================================ */
-
-function renderWorkOrders() {
-
-  const project =
-    getSelectedProject();
-
-
-  const element =
-    document.getElementById(
-      "browseContent"
-    );
-
-
-  if (
-    !project
-  ) {
-
-    goHome();
-
-    return;
-
-  }
-
-
-  const list =
-    projectWorkOrders(
-      project.id
-    );
-
-
-  let html =
-    `
-      <div class="card">
-
-        <h2>
-          ${escapeHtml(project.name)}
-        </h2>
-
-        <p class="subhint">
-          Add each work order once. You can keep taking points under it all day.
-        </p>
-
-
-        <label class="field-label">
-          New Work Order
-        </label>
-
-        <input
-          type="text"
-          id="newWorkOrderNumber"
-          placeholder="e.g., 50773454"
-        >
-
-
-        <label class="field-label">
-          Description (optional)
-        </label>
-
-        <input
-          type="text"
-          id="newWorkOrderDescription"
-          placeholder="e.g., Reconductor / Pole replacements"
-        >
-
-
-        <button
-          class="btn btn-primary"
-          style="margin-top:10px;"
-          onclick="createWorkOrder()"
-        >
-          + New Work Order
-        </button>
-
-      </div>
-    `;
-
-
-  if (
-    list.length === 0
-  ) {
-
-    html +=
-      `
-        <div class="card empty">
-          No work orders yet.
-        </div>
-      `;
-
-  } else {
-
-    html +=
-      `
-        <div class="section-title">
-          Work Orders
-        </div>
-      `;
-
-
-    for (
-      const workOrder of
-      list
-        .slice()
-        .sort(
-          (
-            a,
-            b
-          ) =>
-            b.createdAt -
-            a.createdAt
-        )
-    ) {
-
-      const savedPoints =
-        workOrderPoints(
-          workOrder.id
-        );
-
-
-      const photos =
-        savedPoints.reduce(
-          (
-            sum,
-            point
-          ) =>
-            sum +
-            (
-              point.photoCount ||
-              0
-            ),
-          0
-        );
-
-
-      html +=
-        `
-          <div class="list-card">
-
-            <div class="list-main">
-
-              <button
-                onclick="openWorkOrder('${workOrder.id}')"
-              >
-
-                <div class="list-title">
-                  ${escapeHtml(workOrder.number)}
-                </div>
-
-
-                <div class="list-sub">
-
-                  ${escapeHtml(workOrder.description || "")}
-
-                  ${
-                    workOrder.description
-                      ? " • "
-                      : ""
-                  }
-
-                  ${savedPoints.length}
-                  point(s)
-
-                  •
-
-                  ${photos}
-                  photo(s)
-
-                </div>
-
-              </button>
-
-            </div>
-
-
-            <div class="list-actions">
-
-              <button
-                class="export"
-                onclick="exportWorkOrderById('${workOrder.id}')"
-              >
-                Export
-              </button>
-
-              <button
-                class="danger"
-                onclick="deleteWorkOrder('${workOrder.id}')"
-              >
-                Delete
-              </button>
-
-            </div>
-
-          </div>
-        `;
-
-    }
-
-  }
-
-
-  element.innerHTML =
-    html;
-
-}
-
-
-async function createWorkOrder() {
-
-  const project =
-    getSelectedProject();
-
-
-  if (
-    !project
-  ) {
-
-    return;
-
-  }
-
-
-  const number =
-    document
-      .getElementById(
-        "newWorkOrderNumber"
-      )
-      .value
-      .trim();
-
-
-  const description =
-    document
-      .getElementById(
-        "newWorkOrderDescription"
-      )
-      .value
-      .trim();
-
-
-  if (
-    !number
-  ) {
-
-    alert(
-      "Enter a work order number."
-    );
-
-    return;
-
-  }
-
-
-  const duplicate =
-    workOrders.some(
-      workOrder =>
-        workOrder.projectId ===
-          project.id &&
-        workOrder.number.toLowerCase() ===
-          number.toLowerCase()
-    );
-
-
-  if (
-    duplicate
-  ) {
-
-    alert(
-      "That work order already exists under this project."
-    );
-
-    return;
-
-  }
-
-
-  const workOrder = {
-
-    id:
-      makeId(
-        "wo"
-      ),
-
-    projectId:
-      project.id,
-
-    number,
-
-    description,
-
-    createdAt:
-      Date.now()
-
-  };
-
-
-  await putOne(
-    STORE_WORKORDERS,
-    workOrder
-  );
-
-
-  workOrders.push(
-    workOrder
-  );
-
-
-  state.selectedWorkOrderId =
-    workOrder.id;
-
-
-  state.lastWorkOrderId =
-    workOrder.id;
-
-
-  await saveSettings();
-
-
-  state.browseLevel =
-    "points";
-
-
-  renderBrowse();
-
-
-  showToast(
-    "Work order created"
-  );
-
-}
-
-
-function openWorkOrder(
-  id
-) {
-
-  const workOrder =
-    getWorkOrderById(
-      id
-    );
-
-
-  if (
-    !workOrder
-  ) {
-
-    return;
-
-  }
-
-
-  state.selectedProjectId =
-    workOrder.projectId;
-
-
-  state.selectedWorkOrderId =
-    workOrder.id;
-
-
-  state.lastWorkOrderId =
-    workOrder.id;
-
-
-  state.browseLevel =
-    "points";
-
-
-  saveSettings();
-
-
-  renderBrowse();
-
-}
-
-
-/* ============================================================
-   POINTS
-   ============================================================ */
-
-function renderPoints() {
-
-  const project =
-    getSelectedProject();
-
-
-  const workOrder =
-    getSelectedWorkOrder();
-
-
-  const element =
-    document.getElementById(
-      "browseContent"
-    );
-
-
-  if (
-    !project ||
-    !workOrder
-  ) {
-
-    goHome();
-
-    return;
-
-  }
-
-
-  const savedPoints =
-    workOrderPoints(
-      workOrder.id
-    )
-      .slice()
-      .sort(
-        (
-          a,
-          b
-        ) =>
-          b.createdAt -
-          a.createdAt
-      );
-
-
-  const photos =
-    savedPoints.reduce(
-      (
-        sum,
-        point
-      ) =>
-        sum +
-        (
-          point.photoCount ||
-          0
-        ),
-      0
-    );
-
-
-  let html =
-    `
-      <div class="card">
-
-        <h2>
-          ${escapeHtml(workOrder.number)}
-        </h2>
-
-        <p class="subhint">
-          ${escapeHtml(workOrder.description || "Work Order")}
-        </p>
-
-
-        <div class="stats">
-
-          <div class="stat">
-            <strong>
-              ${savedPoints.length}
-            </strong>
-            <span>
-              Points
-            </span>
-          </div>
-
-          <div class="stat">
-            <strong>
-              ${photos}
-            </strong>
-            <span>
-              Photos
-            </span>
-          </div>
-
-          <div class="stat">
-            <strong>
-              ${
-                savedPoints.filter(
-                  point =>
-                    point.hydrovac
-                ).length
-              }
-            </strong>
-            <span>
-              Hydrovac
-            </span>
-          </div>
-
-        </div>
-
-
-        <button
-          class="btn btn-success"
-          style="margin-top:12px;"
-          onclick="startNewPoint()"
-        >
-          📷 New Point
-        </button>
-
-
-        <button
-          class="btn btn-primary"
-          onclick="exportWorkOrderById('${workOrder.id}')"
-        >
-          ⬇ Export Work Order
-        </button>
-
-      </div>
-    `;
-
-
-  if (
-    savedPoints.length === 0
-  ) {
-
-    html +=
-      `
-        <div class="card empty">
-          No points yet. Tap “New Point” to start taking photos.
-        </div>
-      `;
-
-  } else {
-
-    html +=
-      `
-        <div class="section-title">
-          Saved Points
-        </div>
-      `;
-
-
-    for (
-      const point of savedPoints
-    ) {
-
-      html +=
-        `
-          <div class="list-card">
-
-            <div class="list-main">
-
-              <button
-                onclick="openPointInGallery('${point.id}')"
-              >
-
-                <div class="list-title">
-                  ${escapeHtml(point.name)}
-                </div>
-
-
-                <div class="list-sub">
-
-                  ${point.photoCount || 0}
-                  photo(s)
-
-                  •
-
-                  ${escapeHtml(point.timestamp || "")}
-
-                </div>
-
-
-                <div style="margin-top:5px;">
-
-                  ${
-                    point.trafficControl
-                      ? `<span class="badge badge-orange">Traffic Control</span>`
-                      : ""
-                  }
-
-                  ${
-                    point.hydrovac
-                      ? `<span class="badge badge-purple">Hydrovac</span>`
-                      : ""
-                  }
-
-                  ${
-                    point.accessibilityIssue
-                      ? `<span class="badge badge-green">Accessibility</span>`
-                      : ""
-                  }
-
-                </div>
-
-              </button>
-
-            </div>
-
-
-            <div class="list-actions">
-
-              <button
-                class="export"
-                onclick="exportPointById('${point.id}')"
-              >
-                Export
-              </button>
-
-              <button
-                class="danger"
-                onclick="deletePoint('${point.id}')"
-              >
-                Delete
-              </button>
-
-            </div>
-
-          </div>
-        `;
-
-    }
-
-  }
-
-
-  element.innerHTML =
-    html;
-
-}
-
-
-function nextPointSuggestion() {
-
-  const workOrder =
-    getSelectedWorkOrder();
-
-
-  if (
-    !workOrder
-  ) {
-
-    return "";
-
-  }
-
-
-  const count =
-    workOrderPoints(
-      workOrder.id
-    ).length +
-    1;
-
-
-  return (
-    "Point " +
-    String(count)
-      .padStart(
-        3,
-        "0"
-      )
-  );
-
-}
-
-
-function startNewPoint() {
-
-  resetCaptureForm(
-    false
-  );
-
-
-  const suggestion =
-    nextPointSuggestion();
-
-
-  document.getElementById(
-    "pointName"
-  ).value =
-    suggestion;
-
-
-  document.getElementById(
-    "pointSuggestion"
-  ).textContent =
-    "Auto-suggested: " +
-    suggestion;
-
-
-  updateSaveButton();
-
-
-  setMainTab(
-    "capture"
-  );
-
-}
-
-
-/* ============================================================
-   CAPTURE CONTEXT
-   ============================================================ */
-
-function renderCaptureContext() {
-
-  const project =
-    getSelectedProject();
-
-
-  const workOrder =
-    getSelectedWorkOrder();
-
-
-  document.getElementById(
-    "captureNoContext"
-  ).classList.toggle(
-    "hidden",
-    !!(
-      project &&
-      workOrder
-    )
-  );
-
-
-  document.getElementById(
-    "captureContext"
-  ).classList.toggle(
-    "hidden",
-    !(
-      project &&
-      workOrder
-    )
-  );
-
-
-  if (
-    project &&
-    workOrder
-  ) {
-
-    document.getElementById(
-      "captureContextText"
-    ).innerHTML =
-      `
-        <strong>
-          ${escapeHtml(project.name)}
-        </strong>
-
-        <br>
-
-        Work Order:
-        ${escapeHtml(workOrder.number)}
-
-        ${
-          workOrder.description
-            ? `
-                <br>
-                <span class="small">
-                  ${escapeHtml(workOrder.description)}
-                </span>
-              `
-            : ""
-        }
-      `;
-
-
-    const suggestion =
-      nextPointSuggestion();
-
-
-    if (
-      !document
-        .getElementById(
-          "pointName"
-        )
-        .value
-        .trim()
-    ) {
-
-      document.getElementById(
-        "pointName"
-      ).value =
-        suggestion;
-
-    }
-
-
-    document.getElementById(
-      "pointSuggestion"
-    ).textContent =
-      "Next suggested point: " +
-      suggestion;
-
-
-    state.lastWorkOrderId =
-      workOrder.id;
-
-
-    saveSettings();
-
-
-    loadDraft();
-
-  }
-
-
-  updateBreadcrumbs();
-
-  updateSaveButton();
-
-}
-
-
-/* ============================================================
-   IMAGE HANDLING
-   ============================================================ */
-
-document.getElementById(
-  "cameraInput"
-).addEventListener(
-  "change",
-  handleFiles
-);
-
-
-document.getElementById(
-  "fileInput"
-).addEventListener(
-  "change",
-  handleFiles
-);
-
-
-async function fileToDataUrl(
-  file
-) {
-
-  return new Promise(
-    (
-      resolve,
-      reject
-    ) => {
-
-      const reader =
-        new FileReader();
-
-
-      reader.onload =
-        event => {
-
-          resolve(
-            event.target.result
-          );
-
-        };
-
-
-      reader.onerror =
-        () => {
-
-          reject(
-            reader.error
-          );
-
-        };
-
-
-      reader.readAsDataURL(
-        file
-      );
-
-    }
-  );
-
-}
-
-
-function loadImage(
-  source
-) {
-
-  return new Promise(
-    (
-      resolve,
-      reject
-    ) => {
-
-      const image =
-        new Image();
-
-
-      image.onload =
-        () => {
-
-          resolve(
-            image
-          );
-
-        };
-
-
-      image.onerror =
-        () => {
-
-          reject(
-            new Error(
-              "Image load failed"
-            )
-          );
-
-        };
-
-
-      image.src =
-        source;
-
-    }
-  );
-
-}
-
-
-async function resizeDataUrl(
-  source,
-  maxDimension,
-  quality
-) {
-
-  const image =
-    await loadImage(
-      source
-    );
-
-
-  let width =
-    image.width;
-
-
-  let height =
-    image.height;
-
-
-  if (
-    width >
-      height &&
-    width >
-      maxDimension
-  ) {
-
-    height =
-      Math.round(
-        height *
-        (
-          maxDimension /
-          width
-        )
-      );
-
-
-    width =
-      maxDimension;
-
-  } else if (
-    height >
-      maxDimension
-  ) {
-
-    width =
-      Math.round(
-        width *
-        (
-          maxDimension /
-          height
-        )
-      );
-
-
-    height =
-      maxDimension;
-
-  }
-
-
-  const canvas =
-    document.createElement(
-      "canvas"
-    );
-
-
-  canvas.width =
-    width;
-
-
-  canvas.height =
-    height;
-
-
-  const context =
-    canvas.getContext(
-      "2d"
-    );
-
-
-  context.drawImage(
-    image,
-    0,
-    0,
-    width,
-    height
-  );
-
-
-  return canvas.toDataURL(
-    "image/jpeg",
-    quality
-  );
-
-}
-
-
-async function processPhoto(
-  file
-) {
-
-  const original =
-    await fileToDataUrl(
-      file
-    );
-
-
-  const full =
-    await resizeDataUrl(
-      original,
-      1280,
-      .65
-    );
-
-
-  const thumb =
-    await resizeDataUrl(
-      full,
-      260,
-      .55
-    );
-
-
-  return {
-    full,
-    thumb
-  };
-
-}
-
-
-async function handleFiles(
-  event
-) {
-
-  const files =
-    Array.from(
-      event.target.files ||
-      []
-    );
-
-
-  event.target.value =
-    "";
-
-
-  if (
-    !files.length
-  ) {
-
-    return;
-
-  }
-
-
-  if (
-    !stagedGps
-  ) {
-
-    requestLocation(
-      false
-    );
-
-  }
-
-
-  for (
-    const file of files
-  ) {
-
-    try {
-
-      showToast(
-        "Processing photo…",
-        true
-      );
-
-
-      const photo =
-        await processPhoto(
-          file
-        );
-
-
-      stagedPhotos.push(
-        photo
-      );
-
-
-      renderStagedPhotos();
-
-      updateSaveButton();
-
-      await saveDraftNow();
-
-
-      hideToast();
-
-
-      showToast(
-        `Photo added (${stagedPhotos.length})`
-      );
-
-
-    } catch (
-      error
-    ) {
-
-      hideToast();
-
-
-      console.error(
-        error
-      );
-
-
-      alert(
-        "One of the photos could not be processed."
-      );
-
-    }
-
-  }
-
-}
-
-
-/* ============================================================
-   STAGED PHOTOS
-   ============================================================ */
-
-function renderStagedPhotos() {
-
-  const grid =
-    document.getElementById(
-      "thumbGrid"
-    );
-
-
-  document.getElementById(
-    "clearPhotosBtn"
-  ).style.display =
-    stagedPhotos.length
-      ? "block"
-      : "none";
-
-
-  grid.innerHTML =
-    stagedPhotos
-      .map(
-        (
-          photo,
-          index
-        ) =>
-          `
-            <div class="thumb-wrap">
-
-              <img
-                src="${photo.thumb}"
-                alt=""
-              >
-
-              <button
-                class="thumb-remove"
-                onclick="removeStaged(${index})"
-              >
-                ✕
-              </button>
-
-              <span class="thumb-count">
-                ${index + 1}
-              </span>
-
-            </div>
-          `
-      )
-      .join("");
-
-}
-
-
-async function removeStaged(
-  index
-) {
-
-  stagedPhotos.splice(
-    index,
-    1
-  );
-
-
-  renderStagedPhotos();
-
-  updateSaveButton();
-
-  await saveDraftNow();
-
-}
-
-
-async function clearStaged() {
-
-  if (
-    stagedPhotos.length &&
-    !confirm(
-      "Remove all unsaved photos from this point?"
-    )
-  ) {
-
-    return;
-
-  }
-
-
-  stagedPhotos =
-    [];
-
-
-  stagedGps =
-    null;
-
-
-  renderStagedPhotos();
-
-  updateGpsStatus();
-
-  updateSaveButton();
-
-  await saveDraftNow();
-
-}
-
-
-/* ============================================================
-   GPS
-   ============================================================ */
-
-function requestLocation(
-  manual
-) {
-
-  if (
-    !navigator.geolocation
-  ) {
-
-    if (
-      manual
-    ) {
-
-      alert(
-        "Location is not supported on this device."
-      );
-
-    }
-
-
-    return;
-
-  }
-
-
-  document.getElementById(
-    "gpsStatusText"
-  ).textContent =
-    "📍 Getting location…";
-
-
-  navigator.geolocation.getCurrentPosition(
-
-    position => {
-
-      stagedGps = {
-
-        lat:
-          position.coords.latitude,
-
-        lng:
-          position.coords.longitude,
-
-        accuracy:
-          position.coords.accuracy
-
-      };
-
-
-      updateGpsStatus();
-
-      scheduleDraftSave();
-
-    },
-
-
-    error => {
-
-      document.getElementById(
-        "gpsStatusText"
-      ).textContent =
-        "📍 Location unavailable";
-
-
-      if (
-        manual
-      ) {
-
-        showToast(
-          "Location unavailable"
-        );
-
+// One-time migration from the older localStorage-based versions of this app
+async function migrateFromLocalStorageIfNeeded() {
+  try {
+    const rawV2 = localStorage.getItem(OLD_LOCALSTORAGE_KEY_V2);
+    if (rawV2) {
+      const oldPoints = JSON.parse(rawV2);
+      for (const p of oldPoints) {
+        await dbPut({ gps: null, accessibilityIssue: false, ...p });
       }
-
-    },
-
-
-    {
-
-      enableHighAccuracy:
-        true,
-
-      timeout:
-        15000,
-
-      maximumAge:
-        60000
-
+      localStorage.removeItem(OLD_LOCALSTORAGE_KEY_V2);
     }
+  } catch (e) { console.error('v2 migration failed', e); }
 
-  );
-
+  try {
+    const rawV1 = localStorage.getItem(OLD_LOCALSTORAGE_KEY_V1);
+    if (rawV1) {
+      const legacy = JSON.parse(rawV1);
+      for (const p of legacy) {
+        await dbPut({
+          id: p.id,
+          projectId: p.projectId,
+          images: [p.imageData],
+          trafficControl: !!p.trafficControl,
+          hydrovac: !!p.hydrovac,
+          accessibilityIssue: false,
+          gps: null,
+          notes: p.notes || '',
+          timestamp: p.timestamp
+        });
+      }
+      localStorage.removeItem(OLD_LOCALSTORAGE_KEY_V1);
+    }
+  } catch (e) { console.error('v1 migration failed', e); }
 }
 
+// Auto-increments a Project ID like "P-07" -> "P-08" (preserving zero-padding
+// width) so the field is pre-filled ready for the next point instead of
+// making you retype the same prefix every time. Falls back to "P-" if the
+// ID doesn't end in a number.
+function nextProjectId(projectId) {
+  const match = (projectId || '').match(/^(.*?)(\d+)$/);
+  if (!match) return 'P-';
+  const prefix = match[1];
+  const digits = match[2];
+  const nextNum = (parseInt(digits, 10) + 1).toString().padStart(digits.length, '0');
+  return prefix + nextNum;
+}
+
+const STAY_ON_CAPTURE_KEY = 'photoTaggerStayOnCapture';
+function getStayOnCapturePref() {
+  return localStorage.getItem(STAY_ON_CAPTURE_KEY) === '1';
+}
+function setStayOnCapturePref(value) {
+  try { localStorage.setItem(STAY_ON_CAPTURE_KEY, value ? '1' : '0'); } catch (e) { /* ignore */ }
+}
+
+function saveDraft() {
+  if (editingPointId !== null) return; // don't let edit-in-progress pollute the new-point draft
+  const draft = {
+    projectId: document.getElementById('projectId').value,
+    trafficControl: document.getElementById('trafficControl').checked,
+    hydrovac: document.getElementById('hydrovac').checked,
+    accessibilityIssue: document.getElementById('accessibilityIssue').checked,
+    notes: document.getElementById('notes').value,
+    stagedImages: stagedImages,
+    stagedGps: stagedGps
+  };
+  const hasContent = draft.projectId || draft.notes || draft.trafficControl || draft.hydrovac || draft.accessibilityIssue || stagedImages.length > 0;
+  if (hasContent) {
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); } catch (e) { /* quota errors on draft are non-fatal */ }
+  } else {
+    localStorage.removeItem(DRAFT_KEY);
+  }
+}
+
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return;
+    const draft = JSON.parse(raw);
+    document.getElementById('projectId').value = draft.projectId || '';
+    document.getElementById('trafficControl').checked = !!draft.trafficControl;
+    document.getElementById('hydrovac').checked = !!draft.hydrovac;
+    document.getElementById('accessibilityIssue').checked = !!draft.accessibilityIssue;
+    document.getElementById('notes').value = draft.notes || '';
+    stagedImages = draft.stagedImages || [];
+    stagedGps = draft.stagedGps || null;
+    renderThumbs();
+    updateGpsStatus();
+    updateSaveBtn();
+  } catch (e) { /* ignore */ }
+}
+
+function clearDraft() {
+  localStorage.removeItem(DRAFT_KEY);
+}
+
+// =========================================================================
+// STATE
+// =========================================================================
+let points = [];           // in-memory cache of all points, newest first
+let stagedImages = [];     // data URLs for the point currently being tagged
+let stagedGps = null;      // { lat, lng, accuracy } for the point currently being tagged
+let lastSavedPointId = null;
+let editingPointId = null; // set when editing an existing point instead of creating a new one
+const GALLERY_PAGE_SIZE = 30;
+let galleryRenderLimit = GALLERY_PAGE_SIZE;
+
+// =========================================================================
+// NAVIGATION (back button support)
+// =========================================================================
+function safeHistory(method, state, url) {
+  try { history[method](state, '', url); }
+  catch (e) { console.warn('History API unavailable (expected on some file:// pages):', e); }
+}
+
+function goTo(view, pushState = true) {
+  document.getElementById('view-capture').style.display = view === 'capture' ? 'block' : 'none';
+  document.getElementById('view-gallery').style.display = view === 'gallery' ? 'block' : 'none';
+  document.getElementById('tabCapture').classList.toggle('active', view === 'capture');
+  document.getElementById('tabGallery').classList.toggle('active', view === 'gallery');
+  document.getElementById('pageTitle').textContent = view === 'capture' ? 'Photo Tagger' : 'Gallery';
+  document.getElementById('backBtn').classList.toggle('show', view === 'gallery');
+  if (view === 'gallery') renderGallery();
+  if (pushState) safeHistory('pushState', { view }, '#' + view);
+}
+
+window.addEventListener('popstate', (e) => {
+  const view = (e.state && e.state.view) || 'capture';
+  goTo(view, false);
+});
+
+safeHistory('replaceState', { view: 'capture' }, '#capture');
+
+// =========================================================================
+// TOAST NOTIFICATIONS
+// =========================================================================
+let toastTimer = null;
+function showToast(message, thumbUrl, sticky) {
+  const toast = document.getElementById('toast');
+  toast.innerHTML = (thumbUrl ? `<img class="toast-thumb" src="${thumbUrl}">` : '') + `<span>${message}</span>`;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  if (!sticky) toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+}
+function hideToast() {
+  document.getElementById('toast').classList.remove('show');
+}
+
+// =========================================================================
+// GPS CAPTURE
+// =========================================================================
+function requestLocation(manual) {
+  const statusEl = document.getElementById('gpsStatus');
+  const textEl = document.getElementById('gpsStatusText');
+  if (!('geolocation' in navigator)) {
+    statusEl.classList.add('error');
+    textEl.textContent = '📍 Location not supported on this device';
+    return;
+  }
+  statusEl.classList.remove('error');
+  textEl.textContent = '📍 Getting location…';
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      stagedGps = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        accuracy: pos.coords.accuracy
+      };
+      updateGpsStatus();
+      saveDraft();
+    },
+    (err) => {
+      statusEl.classList.add('error');
+      let msg = 'Location unavailable';
+      if (err.code === 1) msg = 'Location permission denied — enable it in Settings to tag GPS';
+      else if (err.code === 2) msg = 'Location unavailable right now';
+      else if (err.code === 3) msg = 'Location request timed out';
+      textEl.textContent = '📍 ' + msg;
+      if (manual) showToast(msg);
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+  );
+}
 
 function updateGpsStatus() {
-
-  const element =
-    document.getElementById(
-      "gpsStatusText"
-    );
-
-
-  if (
-    stagedGps
-  ) {
-
-    element.textContent =
-      `📍 ${stagedGps.lat.toFixed(6)}, ${stagedGps.lng.toFixed(6)} (±${Math.round(stagedGps.accuracy)}m)`;
-
+  const statusEl = document.getElementById('gpsStatus');
+  const textEl = document.getElementById('gpsStatusText');
+  if (stagedGps) {
+    statusEl.classList.remove('error');
+    textEl.textContent = `📍 ${stagedGps.lat.toFixed(6)}, ${stagedGps.lng.toFixed(6)} (±${Math.round(stagedGps.accuracy)}m)`;
   } else {
-
-    element.textContent =
-      "📍 No location captured yet";
-
+    textEl.textContent = '📍 No location captured yet';
   }
-
 }
 
+// =========================================================================
+// CAPTURE LOGIC
+// =========================================================================
+document.getElementById('cameraInput').addEventListener('change', handleFiles);
+document.getElementById('fileInput').addEventListener('change', handleFiles);
 
-/* ============================================================
-   DRAFT
-   ============================================================ */
-
-function updateSaveButton() {
-
-  const name =
-    document
-      .getElementById(
-        "pointName"
-      )
-      .value
-      .trim();
-
-
-  document.getElementById(
-    "savePointBtn"
-  ).disabled =
-    !(
-      name &&
-      stagedPhotos.length &&
-      getSelectedWorkOrder()
-    );
-
+// Photos are resized/re-compressed before storing. Full-size phone camera
+// photos (3-8MB each) would make 1000-photo storage impractical; this keeps
+// each photo small while still readable for field documentation.
+function compressImage(file, maxDimension = 1280, quality = 0.65) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Could not read image'));
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > height && width > maxDimension) {
+          height = Math.round(height * (maxDimension / width));
+          width = maxDimension;
+        } else if (height > maxDimension) {
+          width = Math.round(width * (maxDimension / height));
+          height = maxDimension;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
+async function handleFiles(e) {
+  const files = Array.from(e.target.files || []);
+  if (files.length === 0) return;
+  e.target.value = '';
 
-function scheduleDraftSave() {
+  const wasEmpty = stagedImages.length === 0;
+  if (wasEmpty && !stagedGps) requestLocation(false);
 
-  clearTimeout(
-    draftTimer
-  );
-
-
-  draftTimer =
-    setTimeout(
-      saveDraftNow,
-      300
-    );
-
+  for (const file of files) {
+    try {
+      const compressed = await compressImage(file);
+      stagedImages.push(compressed);
+      renderThumbs();
+      updateSaveBtn();
+      saveDraft();
+      showToast(`Photo added (${stagedImages.length} total)`, compressed);
+    } catch (err) {
+      console.error('Image processing failed', err);
+      alert('One of the photos could not be processed. Please try again.');
+    }
+  }
 }
 
-
-async function saveDraftNow() {
-
-  const workOrder =
-    getSelectedWorkOrder();
-
-
-  if (
-    !workOrder
-  ) {
-
+function renderThumbs() {
+  const grid = document.getElementById('thumbGrid');
+  document.getElementById('clearAllBtn').style.display = stagedImages.length > 0 ? 'block' : 'none';
+  if (stagedImages.length === 0) {
+    grid.innerHTML = '';
     return;
-
   }
-
-
-  const draft = {
-
-    id:
-      "current",
-
-    projectId:
-      workOrder.projectId,
-
-    workOrderId:
-      workOrder.id,
-
-    pointName:
-      document.getElementById(
-        "pointName"
-      ).value,
-
-    trafficControl:
-      document.getElementById(
-        "trafficControl"
-      ).checked,
-
-    hydrovac:
-      document.getElementById(
-        "hydrovac"
-      ).checked,
-
-    accessibilityIssue:
-      document.getElementById(
-        "accessibilityIssue"
-      ).checked,
-
-    notes:
-      document.getElementById(
-        "notes"
-      ).value,
-
-    photos:
-      stagedPhotos,
-
-    gps:
-      stagedGps,
-
-    updatedAt:
-      Date.now()
-
-  };
-
-
-  const hasContent =
-    draft.pointName ||
-    draft.notes ||
-    draft.trafficControl ||
-    draft.hydrovac ||
-    draft.accessibilityIssue ||
-    draft.photos.length;
-
-
-  if (
-    hasContent
-  ) {
-
-    await putOne(
-      STORE_DRAFT,
-      draft
-    );
-
-  } else {
-
-    await deleteOneRecord(
-      STORE_DRAFT,
-      "current"
-    );
-
-  }
-
+  grid.innerHTML = stagedImages.map((img, i) => `
+    <div class="thumb-wrap">
+      <img src="${img}" alt="photo ${i + 1}">
+      <button class="thumb-remove" onclick="removeStaged(${i})">✕</button>
+      <span class="thumb-count-badge">${i + 1}</span>
+    </div>
+  `).join('');
 }
 
+function removeStaged(index) {
+  stagedImages.splice(index, 1);
+  renderThumbs();
+  updateSaveBtn();
+  saveDraft();
+}
 
-async function loadDraft() {
-
-  const workOrder =
-    getSelectedWorkOrder();
-
-
-  if (
-    !workOrder
-  ) {
-
-    return;
-
-  }
-
-
-  const draft =
-    await getOne(
-      STORE_DRAFT,
-      "current"
-    );
-
-
-  if (
-    !draft
-  ) {
-
-    return;
-
-  }
-
-
-  if (
-    draft.workOrderId !==
-    workOrder.id
-  ) {
-
-    return;
-
-  }
-
-
-  document.getElementById(
-    "pointName"
-  ).value =
-    draft.pointName ||
-    nextPointSuggestion();
-
-
-  document.getElementById(
-    "trafficControl"
-  ).checked =
-    !!draft.trafficControl;
-
-
-  document.getElementById(
-    "hydrovac"
-  ).checked =
-    !!draft.hydrovac;
-
-
-  document.getElementById(
-    "accessibilityIssue"
-  ).checked =
-    !!draft.accessibilityIssue;
-
-
-  document.getElementById(
-    "notes"
-  ).value =
-    draft.notes ||
-    "";
-
-
-  stagedPhotos =
-    Array.isArray(
-      draft.photos
-    )
-      ? draft.photos
-      : [];
-
-
-  stagedGps =
-    draft.gps ||
-    null;
-
-
-  renderStagedPhotos();
-
+function clearStaged() {
+  if (stagedImages.length > 0 && !confirm('Remove all photos from this point?')) return;
+  stagedImages = [];
+  stagedGps = null;
+  renderThumbs();
   updateGpsStatus();
-
-  updateSaveButton();
-
+  updateSaveBtn();
+  saveDraft();
 }
 
+function updateSaveBtn() {
+  const pid = document.getElementById('projectId').value.trim();
+  document.getElementById('saveBtn').disabled = !(stagedImages.length > 0 && pid);
+}
 
-function resetCaptureForm(
-  clearDraftToo = true
-) {
+['projectId', 'notes'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => { updateSaveBtn(); saveDraft(); });
+});
+['trafficControl', 'hydrovac', 'accessibilityIssue'].forEach(id => {
+  document.getElementById(id).addEventListener('change', saveDraft);
+});
 
-  stagedPhotos =
-    [];
+function editPoint(id) {
+  const point = points.find(p => p.id === id);
+  if (!point) return;
 
+  editingPointId = id;
+  stagedImages = point.images.slice();
+  stagedGps = point.gps || null;
 
-  stagedGps =
-    null;
+  document.getElementById('projectId').value = point.projectId;
+  document.getElementById('trafficControl').checked = !!point.trafficControl;
+  document.getElementById('hydrovac').checked = !!point.hydrovac;
+  document.getElementById('accessibilityIssue').checked = !!point.accessibilityIssue;
+  document.getElementById('notes').value = point.notes || '';
 
-
-  document.getElementById(
-    "pointName"
-  ).value =
-    "";
-
-
-  document.getElementById(
-    "trafficControl"
-  ).checked =
-    false;
-
-
-  document.getElementById(
-    "hydrovac"
-  ).checked =
-    false;
-
-
-  document.getElementById(
-    "accessibilityIssue"
-  ).checked =
-    false;
-
-
-  document.getElementById(
-    "notes"
-  ).value =
-    "";
-
-
-  renderStagedPhotos();
-
+  renderThumbs();
   updateGpsStatus();
+  updateSaveBtn();
 
-  updateSaveButton();
+  document.getElementById('editingBanner').style.display = 'block';
+  document.getElementById('saveBtnLabel').textContent = 'Update Point';
+  document.getElementById('cancelEditBtn').style.display = 'block';
 
-
-  if (
-    clearDraftToo
-  ) {
-
-    deleteOneRecord(
-      STORE_DRAFT,
-      "current"
-    );
-
-  }
-
+  goTo('capture');
+  showToast(`Editing ${point.projectId}`);
 }
 
-
-document.getElementById(
-  "pointName"
-).addEventListener(
-  "input",
-  () => {
-
-    updateSaveButton();
-
-    scheduleDraftSave();
-
-  }
-);
-
-
-document.getElementById(
-  "notes"
-).addEventListener(
-  "input",
-  scheduleDraftSave
-);
-
-
-[
-  "trafficControl",
-  "hydrovac",
-  "accessibilityIssue"
-].forEach(
-  id => {
-
-    document
-      .getElementById(
-        id
-      )
-      .addEventListener(
-        "change",
-        scheduleDraftSave
-      );
-
-  }
-);
-
-
-/* ============================================================
-   SAVE POINT
-   ============================================================ */
+function cancelEdit() {
+  editingPointId = null;
+  stagedImages = [];
+  stagedGps = null;
+  document.getElementById('projectId').value = 'P-';
+  document.getElementById('trafficControl').checked = false;
+  document.getElementById('hydrovac').checked = false;
+  document.getElementById('accessibilityIssue').checked = false;
+  document.getElementById('notes').value = '';
+  renderThumbs();
+  updateGpsStatus();
+  updateSaveBtn();
+  document.getElementById('editingBanner').style.display = 'none';
+  document.getElementById('saveBtnLabel').textContent = 'Save Point & Tags';
+  document.getElementById('cancelEditBtn').style.display = 'none';
+  loadDraft(); // restore any in-progress new-point draft that was paused for this edit
+}
 
 async function savePoint() {
-
-  const project =
-    getSelectedProject();
-
-
-  const workOrder =
-    getSelectedWorkOrder();
-
-
-  const name =
-    document
-      .getElementById(
-        "pointName"
-      )
-      .value
-      .trim();
-
-
-  if (
-    !project ||
-    !workOrder ||
-    !name ||
-    !stagedPhotos.length
-  ) {
-
-    alert(
-      "Select a project/work order, enter a point name, and add at least one photo."
-    );
-
+  const projectId = document.getElementById('projectId').value.trim();
+  if (stagedImages.length === 0 || !projectId) {
+    alert('Please add at least one photo and enter a project ID');
     return;
-
   }
 
+  const isEditing = editingPointId !== null;
+  const existing = isEditing ? points.find(p => p.id === editingPointId) : null;
 
-  const point = {
-
-    id:
-      makeId(
-        "point"
-      ),
-
-    projectId:
-      project.id,
-
-    workOrderId:
-      workOrder.id,
-
-    name,
-
-    trafficControl:
-      document.getElementById(
-        "trafficControl"
-      ).checked,
-
-    hydrovac:
-      document.getElementById(
-        "hydrovac"
-      ).checked,
-
-    accessibilityIssue:
-      document.getElementById(
-        "accessibilityIssue"
-      ).checked,
-
-    gps:
-      stagedGps,
-
-    notes:
-      document.getElementById(
-        "notes"
-      ).value,
-
-    photoCount:
-      stagedPhotos.length,
-
-    previewThumbs:
-      stagedPhotos
-        .slice(
-          0,
-          3
-        )
-        .map(
-          photo =>
-            photo.thumb
-        ),
-
-    timestamp:
-      new Date()
-        .toLocaleString(),
-
-    createdAt:
-      Date.now()
-
+  const savedPoint = {
+    id: isEditing ? editingPointId : Date.now(),
+    projectId,
+    images: stagedImages.slice(),
+    trafficControl: document.getElementById('trafficControl').checked,
+    hydrovac: document.getElementById('hydrovac').checked,
+    accessibilityIssue: document.getElementById('accessibilityIssue').checked,
+    gps: stagedGps,
+    notes: document.getElementById('notes').value,
+    timestamp: isEditing && existing ? existing.timestamp : new Date().toLocaleString(),
+    editedTimestamp: isEditing ? new Date().toLocaleString() : (existing ? existing.editedTimestamp : undefined)
   };
 
-
-  const db =
-    await openDB();
-
-
   try {
-
-    showToast(
-      `Saving ${stagedPhotos.length} photo(s)…`,
-      true
-    );
-
-
-    await new Promise(
-      (
-        resolve,
-        reject
-      ) => {
-
-        const transaction =
-          db.transaction(
-            [
-              STORE_POINTS,
-              STORE_PHOTOS
-            ],
-            "readwrite"
-          );
-
-
-        transaction
-          .objectStore(
-            STORE_POINTS
-          )
-          .put(
-            point
-          );
-
-
-        stagedPhotos.forEach(
-          (
-            photo,
-            index
-          ) => {
-
-            transaction
-              .objectStore(
-                STORE_PHOTOS
-              )
-              .put(
-                {
-
-                  id:
-                    makeId(
-                      "photo"
-                    ),
-
-                  projectId:
-                    project.id,
-
-                  workOrderId:
-                    workOrder.id,
-
-                  pointId:
-                    point.id,
-
-                  index,
-
-                  imageData:
-                    photo.full
-
-                }
-              );
-
-          }
-        );
-
-
-        transaction.oncomplete =
-          () => {
-
-            resolve();
-
-          };
-
-
-        transaction.onerror =
-          () => {
-
-            reject(
-              transaction.error
-            );
-
-          };
-
-
-        transaction.onabort =
-          () => {
-
-            reject(
-              transaction.error
-            );
-
-          };
-
-      }
-    );
-
-
-    points.unshift(
-      point
-    );
-
-
-    state.lastWorkOrderId =
-      workOrder.id;
-
-
-    await saveSettings();
-
-
-    await deleteOneRecord(
-      STORE_DRAFT,
-      "current"
-    );
-
-
-    resetCaptureForm(
-      false
-    );
-
-
-    document.getElementById(
-      "pointName"
-    ).value =
-      nextPointSuggestion();
-
-
-    document.getElementById(
-      "pointSuggestion"
-    ).textContent =
-      "Next suggested point: " +
-      nextPointSuggestion();
-
-
-    hideToast();
-
-
-    showToast(
-      `Saved ${point.photoCount} photo(s) to ${point.name}`
-    );
-
-
-    state.browseLevel =
-      "points";
-
-
-    setMainTab(
-      "browse"
-    );
-
-
-    checkStorage();
-
-
-  } catch (
-    error
-  ) {
-
-    hideToast();
-
-
-    console.error(
-      error
-    );
-
-
+    await dbPut(savedPoint);
+  } catch (e) {
+    console.error('Save failed', e);
     alert(
-      "Could not save this point. Device/browser storage may be full."
+      'This point could not be saved — device storage is full.\n\n' +
+      'Go to the Gallery tab, export your existing points (PDF is most compact), then delete a few older ones to free up space.'
     );
-
-  }
-
-}
-
-
-/* ============================================================
-   PHOTO LOOKUP
-   ============================================================ */
-
-async function getPhotosForPoint(
-  pointId
-) {
-
-  const photos =
-    await getByIndex(
-      STORE_PHOTOS,
-      "pointId",
-      pointId
-    );
-
-
-  photos.sort(
-    (
-      a,
-      b
-    ) =>
-      a.index -
-      b.index
-  );
-
-
-  return photos;
-
-}
-
-
-/* ============================================================
-   DELETE
-   ============================================================ */
-
-async function deletePoint(
-  pointId
-) {
-
-  const point =
-    points.find(
-      item =>
-        item.id ===
-        pointId
-    );
-
-
-  if (
-    !point
-  ) {
-
     return;
-
   }
 
-
-  if (
-    !confirm(
-      `Delete ${point.name} and all ${point.photoCount || 0} photos?`
-    )
-  ) {
-
-    return;
-
+  if (isEditing) {
+    points = points.map(p => p.id === savedPoint.id ? savedPoint : p);
+  } else {
+    points = [savedPoint, ...points];
   }
+  clearDraft();
 
+  editingPointId = null;
+  stagedImages = [];
+  stagedGps = null;
+  document.getElementById('projectId').value = isEditing ? 'P-' : nextProjectId(savedPoint.projectId);
+  document.getElementById('trafficControl').checked = false;
+  document.getElementById('hydrovac').checked = false;
+  document.getElementById('accessibilityIssue').checked = false;
+  document.getElementById('notes').value = '';
+  document.getElementById('editingBanner').style.display = 'none';
+  document.getElementById('saveBtnLabel').textContent = 'Save Point & Tags';
+  document.getElementById('cancelEditBtn').style.display = 'none';
+  renderThumbs();
+  updateGpsStatus();
+  updateSaveBtn();
+  updatePointCount();
 
-  const photos =
-    await getPhotosForPoint(
-      pointId
-    );
+  lastSavedPointId = savedPoint.id;
+  document.getElementById('searchProject').value = '';
+  document.getElementById('searchTerm').value = '';
+  galleryRenderLimit = GALLERY_PAGE_SIZE;
 
-
-  for (
-    const photo of photos
-  ) {
-
-    await deleteOneRecord(
-      STORE_PHOTOS,
-      photo.id
-    );
-
+  if (isEditing || !getStayOnCapturePref()) {
+    goTo('gallery');
   }
-
-
-  await deleteOneRecord(
-    STORE_POINTS,
-    pointId
-  );
-
-
-  points =
-    points.filter(
-      item =>
-        item.id !==
-        pointId
-    );
-
-
-  renderBrowse();
-
-
-  if (
-    state.mainTab ===
-    "gallery"
-  ) {
-
-    renderGallery();
-
-  }
-
-
-  showToast(
-    "Point deleted"
-  );
-
+  showToast(`${isEditing ? 'Updated' : 'Saved'} ${savedPoint.images.length} photo(s) — ${savedPoint.projectId}`, savedPoint.images[0]);
 }
 
-
-async function deleteWorkOrder(
-  workOrderId
-) {
-
-  const workOrder =
-    getWorkOrderById(
-      workOrderId
-    );
-
-
-  if (
-    !workOrder
-  ) {
-
-    return;
-
-  }
-
-
-  const savedPoints =
-    workOrderPoints(
-      workOrderId
-    );
-
-
-  const totalPhotos =
-    savedPoints.reduce(
-      (
-        sum,
-        point
-      ) =>
-        sum +
-        (
-          point.photoCount ||
-          0
-        ),
-      0
-    );
-
-
-  if (
-    !confirm(
-      `Delete work order ${workOrder.number}, ${savedPoints.length} point(s), and ${totalPhotos} photo(s)?`
-    )
-  ) {
-
-    return;
-
-  }
-
-
-  for (
-    const point of savedPoints
-  ) {
-
-    const photos =
-      await getPhotosForPoint(
-        point.id
-      );
-
-
-    for (
-      const photo of photos
-    ) {
-
-      await deleteOneRecord(
-        STORE_PHOTOS,
-        photo.id
-      );
-
-    }
-
-
-    await deleteOneRecord(
-      STORE_POINTS,
-      point.id
-    );
-
-  }
-
-
-  await deleteOneRecord(
-    STORE_WORKORDERS,
-    workOrderId
-  );
-
-
-  points =
-    points.filter(
-      point =>
-        point.workOrderId !==
-        workOrderId
-    );
-
-
-  workOrders =
-    workOrders.filter(
-      item =>
-        item.id !==
-        workOrderId
-    );
-
-
-  if (
-    state.lastWorkOrderId ===
-    workOrderId
-  ) {
-
-    state.lastWorkOrderId =
-      null;
-
-
-    await putOne(
-      STORE_SETTINGS,
-      {
-
-        id:
-          "app",
-
-        lastProjectId:
-          null,
-
-        lastWorkOrderId:
-          null
-
-      }
-    );
-
-  }
-
-
-  renderBrowse();
-
-
-  showToast(
-    "Work order deleted"
-  );
-
+// =========================================================================
+// IMAGE TAGGING (bakes checked tags, GPS, notes onto the photo itself)
+// =========================================================================
+function loadImageEl(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('Could not load image'));
+    img.src = src;
+  });
 }
 
-
-async function deleteProject(
-  projectId
-) {
-
-  const project =
-    getProjectById(
-      projectId
-    );
-
-
-  if (
-    !project
-  ) {
-
-    return;
-
-  }
-
-
-  const workOrderList =
-    projectWorkOrders(
-      projectId
-    );
-
-
-  const projectPoints =
-    points.filter(
-      point =>
-        point.projectId ===
-        projectId
-    );
-
-
-  const totalPhotos =
-    projectPoints.reduce(
-      (
-        sum,
-        point
-      ) =>
-        sum +
-        (
-          point.photoCount ||
-          0
-        ),
-      0
-    );
-
-
-  if (
-    !confirm(
-      `Delete project ${project.name}, ${workOrderList.length} work order(s), ${projectPoints.length} point(s), and ${totalPhotos} photo(s)?`
-    )
-  ) {
-
-    return;
-
-  }
-
-
-  for (
-    const point of projectPoints
-  ) {
-
-    const photos =
-      await getPhotosForPoint(
-        point.id
-      );
-
-
-    for (
-      const photo of photos
-    ) {
-
-      await deleteOneRecord(
-        STORE_PHOTOS,
-        photo.id
-      );
-
-    }
-
-
-    await deleteOneRecord(
-      STORE_POINTS,
-      point.id
-    );
-
-  }
-
-
-  for (
-    const workOrder of
-    workOrderList
-  ) {
-
-    await deleteOneRecord(
-      STORE_WORKORDERS,
-      workOrder.id
-    );
-
-  }
-
-
-  await deleteOneRecord(
-    STORE_PROJECTS,
-    projectId
-  );
-
-
-  points =
-    points.filter(
-      point =>
-        point.projectId !==
-        projectId
-    );
-
-
-  workOrders =
-    workOrders.filter(
-      workOrder =>
-        workOrder.projectId !==
-        projectId
-    );
-
-
-  projects =
-    projects.filter(
-      item =>
-        item.id !==
-        projectId
-    );
-
-
-  renderBrowse();
-
-
-  showToast(
-    "Project deleted"
-  );
-
+function truncate(str, max) {
+  if (!str) return '';
+  return str.length > max ? str.slice(0, max - 1) + '…' : str;
 }
 
-
-/* ============================================================
-   GALLERY FILTERS
-   ============================================================ */
-
-function setupGalleryFilters() {
-
-  const projectSelect =
-    document.getElementById(
-      "galleryProjectFilter"
-    );
-
-
-  const previous =
-    projectSelect.value;
-
-
-  projectSelect.innerHTML =
-    `
-      <option value="">
-        All Projects
-      </option>
-    ` +
-    projects
-      .slice()
-      .sort(
-        (
-          a,
-          b
-        ) =>
-          a.name.localeCompare(
-            b.name
-          )
-      )
-      .map(
-        project =>
-          `
-            <option value="${project.id}">
-              ${escapeHtml(project.name)}
-            </option>
-          `
-      )
-      .join("");
-
-
-  if (
-    state.selectedProjectId &&
-    projects.some(
-      project =>
-        project.id ===
-        state.selectedProjectId
-    )
-  ) {
-
-    projectSelect.value =
-      state.selectedProjectId;
-
-  } else if (
-    previous &&
-    projects.some(
-      project =>
-        project.id ===
-        previous
-    )
-  ) {
-
-    projectSelect.value =
-      previous;
-
-  }
-
-
-  refreshGalleryWorkOrders();
-
-
-  if (
-    state.selectedWorkOrderId &&
-    workOrders.some(
-      workOrder =>
-        workOrder.id ===
-        state.selectedWorkOrderId
-    )
-  ) {
-
-    document.getElementById(
-      "galleryWorkOrderFilter"
-    ).value =
-      state.selectedWorkOrderId;
-
-  }
-
-
-  renderGallery();
-
-}
-
-
-function refreshGalleryWorkOrders() {
-
-  const projectId =
-    document.getElementById(
-      "galleryProjectFilter"
-    ).value;
-
-
-  const workOrderSelect =
-    document.getElementById(
-      "galleryWorkOrderFilter"
-    );
-
-
-  const list =
-    projectId
-      ? projectWorkOrders(
-          projectId
-        )
-      : workOrders;
-
-
-  workOrderSelect.innerHTML =
-    `
-      <option value="">
-        All Work Orders
-      </option>
-    ` +
-    list
-      .slice()
-      .sort(
-        (
-          a,
-          b
-        ) =>
-          a.number.localeCompare(
-            b.number
-          )
-      )
-      .map(
-        workOrder =>
-          `
-            <option value="${workOrder.id}">
-              ${escapeHtml(workOrder.number)}
-            </option>
-          `
-      )
-      .join("");
-
-}
-
-
-function galleryFilterChanged() {
-
-  refreshGalleryWorkOrders();
-
-  renderGallery();
-
-}
-
-
-function getFilteredGalleryPoints() {
-
-  const projectId =
-    document.getElementById(
-      "galleryProjectFilter"
-    ).value;
-
-
-  const workOrderId =
-    document.getElementById(
-      "galleryWorkOrderFilter"
-    ).value;
-
-
-  const search =
-    document
-      .getElementById(
-        "gallerySearch"
-      )
-      .value
-      .trim()
-      .toLowerCase();
-
-
-  return points
-    .filter(
-      point => {
-
-        if (
-          projectId &&
-          point.projectId !==
-          projectId
-        ) {
-
-          return false;
-
-        }
-
-
-        if (
-          workOrderId &&
-          point.workOrderId !==
-          workOrderId
-        ) {
-
-          return false;
-
-        }
-
-
-        if (
-          search
-        ) {
-
-          const searchable =
-            [
-
-              point.name,
-
-              point.notes,
-
-              point.trafficControl
-                ? "traffic control"
-                : "",
-
-              point.hydrovac
-                ? "hydrovac"
-                : "",
-
-              point.accessibilityIssue
-                ? "accessibility"
-                : ""
-
-            ]
-              .join(" ")
-              .toLowerCase();
-
-
-          if (
-            !searchable.includes(
-              search
-            )
-          ) {
-
-            return false;
-
-          }
-
-        }
-
-
-        return true;
-
-      }
-    )
-    .sort(
-      (
-        a,
-        b
-      ) =>
-        b.createdAt -
-        a.createdAt
-    );
-
-}
-
-
-/* ============================================================
-   GALLERY
-   ============================================================ */
-
-function renderGallery() {
-
-  const element =
-    document.getElementById(
-      "galleryContent"
-    );
-
-
-  const list =
-    getFilteredGalleryPoints();
-
-
-  if (
-    !list.length
-  ) {
-
-    element.innerHTML =
-      `
-        <div class="card empty">
-          No points match the current filters.
-        </div>
-      `;
-
-    return;
-
-  }
-
-
-  element.innerHTML =
-    list
-      .map(
-        point => {
-
-          const project =
-            getProjectById(
-              point.projectId
-            );
-
-
-          const workOrder =
-            getWorkOrderById(
-              point.workOrderId
-            );
-
-
-          return `
-            <div class="list-card">
-
-              <div class="gallery-photos">
-
-                ${
-                  (
-                    point.previewThumbs ||
-                    []
-                  )
-                    .map(
-                      thumbnail =>
-                        `
-                          <img
-                            src="${thumbnail}"
-                            alt=""
-                          >
-                        `
-                    )
-                    .join("")
-                }
-
-              </div>
-
-
-              <div class="point-info">
-
-                <div class="list-title">
-                  ${escapeHtml(point.name)}
-                </div>
-
-
-                <div class="list-sub">
-
-                  ${escapeHtml(project?.name || "")}
-
-                  •
-
-                  WO
-                  ${escapeHtml(workOrder?.number || "")}
-
-                  •
-
-                  ${point.photoCount || 0}
-                  photo(s)
-
-                </div>
-
-
-                <div style="margin-top:7px;">
-
-                  ${
-                    point.trafficControl
-                      ? `<span class="badge badge-orange">Traffic Control</span>`
-                      : ""
-                  }
-
-                  ${
-                    point.hydrovac
-                      ? `<span class="badge badge-purple">Hydrovac</span>`
-                      : ""
-                  }
-
-                  ${
-                    point.accessibilityIssue
-                      ? `<span class="badge badge-green">Accessibility</span>`
-                      : ""
-                  }
-
-                  ${
-                    point.gps
-                      ? `<span class="badge badge-blue">📍 GPS</span>`
-                      : ""
-                  }
-
-                </div>
-
-
-                ${
-                  point.notes
-                    ? `
-                        <p class="small">
-                          ${escapeHtml(point.notes)}
-                        </p>
-                      `
-                    : ""
-                }
-
-
-                <p class="small">
-                  ${escapeHtml(point.timestamp || "")}
-                </p>
-
-              </div>
-
-
-              <div class="list-actions">
-
-                <button
-                  class="export"
-                  onclick="exportPointById('${point.id}')"
-                >
-                  Export
-                </button>
-
-                <button
-                  class="danger"
-                  onclick="deletePoint('${point.id}')"
-                >
-                  Delete
-                </button>
-
-              </div>
-
-            </div>
-          `;
-
-        }
-      )
-      .join("");
-
-}
-
-
-function openPointInGallery(
-  pointId
-) {
-
-  const point =
-    points.find(
-      item =>
-        item.id ===
-        pointId
-    );
-
-
-  if (
-    !point
-  ) {
-
-    return;
-
-  }
-
-
-  state.selectedProjectId =
-    point.projectId;
-
-
-  state.selectedWorkOrderId =
-    point.workOrderId;
-
-
-  setMainTab(
-    "gallery"
-  );
-
-
-  document.getElementById(
-    "galleryProjectFilter"
-  ).value =
-    point.projectId;
-
-
-  refreshGalleryWorkOrders();
-
-
-  document.getElementById(
-    "galleryWorkOrderFilter"
-  ).value =
-    point.workOrderId;
-
-
-  document.getElementById(
-    "gallerySearch"
-  ).value =
-    point.name;
-
-
-  renderGallery();
-
-}
-
-
-/* ============================================================
-   EXPORT TAGS
-   ============================================================ */
-
-function truncate(
-  string,
-  max
-) {
-
-  if (
-    !string
-  ) {
-
-    return "";
-
-  }
-
-
-  return string.length > max
-    ? string.slice(
-        0,
-        max - 1
-      ) + "…"
-    : string;
-
-}
-
-
-function buildCaptionLines(
-  point
-) {
-
-  const project =
-    getProjectById(
-      point.projectId
-    );
-
-
-  const workOrder =
-    getWorkOrderById(
-      point.workOrderId
-    );
-
-
-  const lines = [
-
-    `${project?.name || ""} | WO ${workOrder?.number || ""}`,
-
-    point.name,
-
-    `Traffic Control: ${point.trafficControl ? "Yes" : "No"}   Hydrovac: ${point.hydrovac ? "Yes" : "No"}   Accessibility: ${point.accessibilityIssue ? "Yes" : "No"}`
-
-  ];
-
-
-  let bottomLine =
-    point.timestamp ||
-    "";
-
-
-  if (
-    point.gps
-  ) {
-
-    bottomLine +=
-      `   GPS: ${point.gps.lat.toFixed(6)}, ${point.gps.lng.toFixed(6)}`;
-
-  }
-
-
+function buildCaptionLines(point) {
+  const lines = [];
+  lines.push(point.projectId);
   lines.push(
-    bottomLine
+    `Traffic Control: ${point.trafficControl ? 'Yes' : 'No'}   ` +
+    `Hydrovac: ${point.hydrovac ? 'Yes' : 'No'}   ` +
+    `Accessibility Issue: ${point.accessibilityIssue ? 'Yes' : 'No'}`
   );
-
-
-  if (
-    point.notes
-  ) {
-
-    lines.push(
-      `Notes: ${truncate(point.notes,120)}`
-    );
-
-  }
-
-
+  let bottomLine = point.timestamp;
+  if (point.gps) bottomLine += `   GPS: ${point.gps.lat.toFixed(6)}, ${point.gps.lng.toFixed(6)}`;
+  lines.push(bottomLine);
+  if (point.notes) lines.push(`Notes: ${truncate(point.notes, 100)}`);
   return lines;
-
 }
 
+// Draws the photo plus a caption band underneath onto a canvas, returning
+// the canvas (caller decides final export format/quality).
+async function drawTaggedCanvas(imgSrc, point) {
+  const img = await loadImageEl(imgSrc);
+  const lines = buildCaptionLines(point);
+  const padding = Math.max(12, img.width * 0.02);
+  const baseFontSize = Math.max(13, Math.round(img.width * 0.028));
+  const lineHeight = Math.round(baseFontSize * 1.5);
+  const captionHeight = padding * 2 + lines.length * lineHeight;
 
-async function drawTaggedCanvas(
-  source,
-  point
-) {
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width;
+  canvas.height = img.height + captionHeight;
+  const ctx = canvas.getContext('2d');
 
-  const image =
-    await loadImage(
-      source
-    );
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(img, 0, 0);
 
+  ctx.fillStyle = '#f3f4f6';
+  ctx.fillRect(0, img.height, canvas.width, captionHeight);
+  ctx.strokeStyle = '#d1d5db';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, img.height);
+  ctx.lineTo(canvas.width, img.height);
+  ctx.stroke();
 
-  const lines =
-    buildCaptionLines(
-      point
-    );
-
-
-  const padding =
-    Math.max(
-      12,
-      image.width *
-      .02
-    );
-
-
-  const fontSize =
-    Math.max(
-      13,
-      Math.round(
-        image.width *
-        .026
-      )
-    );
-
-
-  const lineHeight =
-    Math.round(
-      fontSize *
-      1.45
-    );
-
-
-  const captionHeight =
-    padding *
-      2 +
-    lines.length *
-      lineHeight;
-
-
-  const canvas =
-    document.createElement(
-      "canvas"
-    );
-
-
-  canvas.width =
-    image.width;
-
-
-  canvas.height =
-    image.height +
-    captionHeight;
-
-
-  const context =
-    canvas.getContext(
-      "2d"
-    );
-
-
-  context.fillStyle =
-    "#ffffff";
-
-
-  context.fillRect(
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
-
-
-  context.drawImage(
-    image,
-    0,
-    0
-  );
-
-
-  context.fillStyle =
-    "#f3f4f6";
-
-
-  context.fillRect(
-    0,
-    image.height,
-    canvas.width,
-    captionHeight
-  );
-
-
-  let y =
-    image.height +
-    padding +
-    fontSize;
-
-
-  lines.forEach(
-    (
-      line,
-      index
-    ) => {
-
-      context.fillStyle =
-        "#111827";
-
-
-      context.font =
-        index < 2
-          ? `bold ${fontSize}px sans-serif`
-          : `${fontSize}px sans-serif`;
-
-
-      context.fillText(
-        line,
-        padding,
-        y
-      );
-
-
-      y +=
-        lineHeight;
-
-    }
-  );
-
+  let y = img.height + padding + baseFontSize * 0.85;
+  lines.forEach((line, i) => {
+    ctx.fillStyle = '#111827';
+    ctx.font = i === 0 ? `bold ${baseFontSize + 2}px sans-serif` : `${baseFontSize}px sans-serif`;
+    ctx.fillText(line, padding, y);
+    y += lineHeight;
+  });
 
   return canvas;
-
 }
 
-
-async function getTaggedDataUrl(
-  source,
-  point,
-  format
-) {
-
-  const canvas =
-    await drawTaggedCanvas(
-      source,
-      point
-    );
-
-
-  if (
-    format ===
-    "png"
-  ) {
-
-    return canvas.toDataURL(
-      "image/png"
-    );
-
-  }
-
-
-  return canvas.toDataURL(
-    "image/jpeg",
-    .85
-  );
-
+async function getTaggedImageDataUrl(imgSrc, point, format) {
+  const canvas = await drawTaggedCanvas(imgSrc, point);
+  if (format === 'png') return canvas.toDataURL('image/png');
+  return canvas.toDataURL('image/jpeg', 0.85);
 }
 
-
-async function buildFullPoint(
-  point
-) {
-
-  const photos =
-    await getPhotosForPoint(
-      point.id
-    );
-
-
-  return {
-
-    ...point,
-
-    images:
-      photos.map(
-        photo =>
-          photo.imageData
-      )
-
-  };
-
+// =========================================================================
+// GALLERY (paginated rendering keeps things responsive at large photo counts)
+// =========================================================================
+function updatePointCount() {
+  const totalPhotos = points.reduce((sum, p) => sum + p.images.length, 0);
+  document.getElementById('photoCount').textContent = totalPhotos;
 }
 
-
-/* ============================================================
-   EXPORT POINT / WO / PROJECT
-   ============================================================ */
-
-async function exportPointById(
-  pointId
-) {
-
-  const point =
-    points.find(
-      item =>
-        item.id ===
-        pointId
-    );
-
-
-  if (
-    !point
-  ) {
-
-    return;
-
+function matchesSearch(p, searchProject, searchTerm) {
+  const matchesProject = !searchProject || p.projectId.toLowerCase().includes(searchProject);
+  let matchesTerm = true;
+  if (searchTerm) {
+    if (searchTerm === 'traffic control') matchesTerm = p.trafficControl;
+    else if (searchTerm === 'hydrovac') matchesTerm = p.hydrovac;
+    else if (searchTerm === 'accessibility issue' || searchTerm === 'accessibility') matchesTerm = p.accessibilityIssue;
+    else matchesTerm = (p.notes || '').toLowerCase().includes(searchTerm);
   }
-
-
-  const fullPoint =
-    await buildFullPoint(
-      point
-    );
-
-
-  await exportPoints(
-    [
-      fullPoint
-    ],
-    document.getElementById(
-      "exportFormat"
-    )?.value ||
-    "jpeg"
-  );
-
+  return matchesProject && matchesTerm;
 }
 
-
-async function exportWorkOrderById(
-  workOrderId
-) {
-
-  const list =
-    workOrderPoints(
-      workOrderId
-    );
-
-
-  if (
-    !list.length
-  ) {
-
-    alert(
-      "This work order has no saved points."
-    );
-
-    return;
-
-  }
-
-
-  const fullPoints =
-    [];
-
-
-  for (
-    let index = 0;
-    index < list.length;
-    index++
-  ) {
-
-    showToast(
-      `Loading ${index + 1}/${list.length} point(s)…`,
-      true
-    );
-
-
-    fullPoints.push(
-      await buildFullPoint(
-        list[index]
-      )
-    );
-
-  }
-
-
-  hideToast();
-
-
-  await exportPoints(
-    fullPoints,
-    document.getElementById(
-      "exportFormat"
-    )?.value ||
-    "jpeg"
-  );
-
+function getFilteredPoints() {
+  const searchProject = document.getElementById('searchProject').value.toLowerCase();
+  const searchTerm = document.getElementById('searchTerm').value.toLowerCase();
+  return points.filter(p => matchesSearch(p, searchProject, searchTerm));
 }
 
-
-async function exportProject(
-  projectId
-) {
-
-  const list =
-    points.filter(
-      point =>
-        point.projectId ===
-        projectId
-    );
-
-
-  if (
-    !list.length
-  ) {
-
-    alert(
-      "This project has no saved points."
-    );
-
-    return;
-
-  }
-
-
-  const fullPoints =
-    [];
-
-
-  for (
-    let index = 0;
-    index < list.length;
-    index++
-  ) {
-
-    showToast(
-      `Loading ${index + 1}/${list.length} point(s)…`,
-      true
-    );
-
-
-    fullPoints.push(
-      await buildFullPoint(
-        list[index]
-      )
-    );
-
-  }
-
-
-  hideToast();
-
-
-  await exportPoints(
-    fullPoints,
-    document.getElementById(
-      "exportFormat"
-    )?.value ||
-    "jpeg"
-  );
-
+function onSearchChange() {
+  galleryRenderLimit = GALLERY_PAGE_SIZE;
+  renderGallery();
 }
 
-
-async function exportFiltered() {
-
-  const list =
-    getFilteredGalleryPoints();
-
-
-  if (
-    !list.length
-  ) {
-
-    alert(
-      "No points to export."
-    );
-
-    return;
-
-  }
-
-
-  const fullPoints =
-    [];
-
-
-  for (
-    let index = 0;
-    index < list.length;
-    index++
-  ) {
-
-    showToast(
-      `Loading ${index + 1}/${list.length} point(s)…`,
-      true
-    );
-
-
-    fullPoints.push(
-      await buildFullPoint(
-        list[index]
-      )
-    );
-
-  }
-
-
-  hideToast();
-
-
-  await exportPoints(
-    fullPoints,
-    document.getElementById(
-      "exportFormat"
-    ).value
-  );
-
+function loadMoreResults() {
+  galleryRenderLimit += GALLERY_PAGE_SIZE;
+  renderGallery();
 }
 
+function renderGallery() {
+  const filtered = getFilteredPoints();
 
-async function exportCurrentWorkOrder() {
-
-  const workOrderId =
-    document.getElementById(
-      "galleryWorkOrderFilter"
-    ).value ||
-    state.selectedWorkOrderId;
-
-
-  if (
-    !workOrderId
-  ) {
-
-    alert(
-      "Select a work order first."
-    );
-
-    return;
-
+  const exportShownBtn = document.getElementById('exportShownBtn');
+  const exportAllBtn = document.getElementById('exportAllBtn');
+  const shownPhotoCount = filtered.reduce((sum, p) => sum + p.images.length, 0);
+  exportShownBtn.textContent = `⬇ Export Shown (${shownPhotoCount})`;
+  exportShownBtn.disabled = filtered.length === 0;
+  if (filtered.length !== points.length) {
+    const allPhotoCount = points.reduce((sum, p) => sum + p.images.length, 0);
+    exportAllBtn.style.display = 'block';
+    exportAllBtn.textContent = `⬇ Export All (${allPhotoCount})`;
+  } else {
+    exportAllBtn.style.display = 'none';
   }
 
-
-  await exportWorkOrderById(
-    workOrderId
-  );
-
-}
-
-
-/* ============================================================
-   EXPORT ENGINE
-   ============================================================ */
-
-async function exportPoints(
-  list,
-  format
-) {
-
-  const totalPhotos =
-    list.reduce(
-      (
-        sum,
-        point
-      ) =>
-        sum +
-        (
-          point.images?.length ||
-          0
-        ),
-      0
-    );
-
-
-  if (
-    !totalPhotos
-  ) {
-
-    alert(
-      "No photos to export."
-    );
-
+  const list = document.getElementById('galleryList');
+  const loadMoreBtn = document.getElementById('loadMoreBtn');
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="card empty-state">${points.length === 0 ? 'No points yet. Capture your first photos!' : 'No points match your search.'}</div>`;
+    loadMoreBtn.style.display = 'none';
     return;
-
   }
 
-
-  if (
-    format ===
-    "pdf"
-  ) {
-
-    await exportPdf(
-      list,
-      totalPhotos
-    );
-
-    return;
-
-  }
-
-
-  if (
-    totalPhotos ===
-    1
-  ) {
-
-    const point =
-      list.find(
-        item =>
-          item.images?.length
-      );
-
-
-    const data =
-      await getTaggedDataUrl(
-        point.images[0],
-        point,
-        format
-      );
-
-
-    const project =
-      getProjectById(
-        point.projectId
-      );
-
-
-    const workOrder =
-      getWorkOrderById(
-        point.workOrderId
-      );
-
-
-    const anchor =
-      document.createElement(
-        "a"
-      );
-
-
-    anchor.href =
-      data;
-
-
-    anchor.download =
-      `${sanitizeName(project?.name)}_${sanitizeName(workOrder?.number)}_${sanitizeName(point.name)}.${format === "png" ? "png" : "jpg"}`;
-
-
-    document.body.appendChild(
-      anchor
-    );
-
-
-    anchor.click();
-
-    anchor.remove();
-
-
-    showToast(
-      "Export complete"
-    );
-
-
-    return;
-
-  }
-
-
-  if (
-    !window.JSZip
-  ) {
-
-    alert(
-      "ZIP library did not load. Reload with an internet connection."
-    );
-
-    return;
-
-  }
-
-
-  if (
-    !confirm(
-      `Export ${totalPhotos} tagged photo(s) into one ZIP file?`
-    )
-  ) {
-
-    return;
-
-  }
-
-
-  const zip =
-    new JSZip();
-
-
-  let completed =
-    0;
-
-
-  for (
-    const point of list
-  ) {
-
-    const project =
-      getProjectById(
-        point.projectId
-      );
-
-
-    const workOrder =
-      getWorkOrderById(
-        point.workOrderId
-      );
-
-
-    const folder =
-      `${sanitizeName(project?.name)}/${sanitizeName(workOrder?.number)}/${sanitizeName(point.name)}`;
-
-
-    for (
-      let index = 0;
-      index < point.images.length;
-      index++
-    ) {
-
-      showToast(
-        `Preparing ${completed + 1}/${totalPhotos}…`,
-        true
-      );
-
-
-      const data =
-        await getTaggedDataUrl(
-          point.images[index],
-          point,
-          format
-        );
-
-
-      zip.file(
-
-        `${folder}/${sanitizeName(point.name)}_${String(index + 1).padStart(3,"0")}.${format === "png" ? "png" : "jpg"}`,
-
-        data.split(",")[1],
-
-        {
-          base64:
-            true
-        }
-
-      );
-
-
-      completed++;
-
-
-      await new Promise(
-        resolve =>
-          setTimeout(
-            resolve,
-            0
-          )
-      );
-
+  const visible = filtered.slice(0, galleryRenderLimit);
+
+  list.innerHTML = visible.map(p => {
+    const imgs = p.images || [];
+    const showCount = Math.min(imgs.length, 3);
+    const gridClass = imgs.length === 1 ? 'point-photos single' : 'point-photos';
+    let photosHtml = '';
+    for (let i = 0; i < showCount; i++) {
+      const isLastTile = i === 2 && imgs.length > 3;
+      photosHtml += isLastTile
+        ? `<div class="more-overlay" data-count="+${imgs.length - 2}"><img src="${imgs[i]}" alt=""></div>`
+        : `<img src="${imgs[i]}" alt="">`;
     }
+    return `
+    <div class="point-card${p.id === lastSavedPointId ? ' just-saved' : ''}" id="point-${p.id}">
+      <div class="${gridClass}">${photosHtml}</div>
+      <div class="photo-info">
+        <span class="project-badge">${escapeHtml(p.projectId)}</span>
+        <span class="photo-count-label">${imgs.length} photo${imgs.length !== 1 ? 's' : ''}</span>
+        <div>
+          ${p.trafficControl ? '<span class="tag-badge tag-traffic">✓ Traffic Control</span>' : ''}
+          ${p.hydrovac ? '<span class="tag-badge tag-hydro">✓ Hydrovac</span>' : ''}
+          ${p.accessibilityIssue ? '<span class="tag-badge tag-access">✓ Accessibility Issue</span>' : ''}
+          ${p.gps ? `<span class="tag-badge gps-badge">📍 ${p.gps.lat.toFixed(5)}, ${p.gps.lng.toFixed(5)}</span>` : ''}
+        </div>
+        ${p.notes ? `<p class="notes-text">${escapeHtml(p.notes)}</p>` : ''}
+        <p class="timestamp">${p.timestamp}${p.editedTimestamp ? ` · Edited ${p.editedTimestamp}` : ''}</p>
+        <div class="card-actions">
+          <button class="act-edit" onclick="editPoint(${p.id})">Edit</button>
+          <button class="act-dl" onclick="exportPoints([points.find(pt=>pt.id===${p.id})], document.getElementById('exportFormat').value)">Export</button>
+          <button class="act-del" onclick="deleteOne(${p.id})">Delete</button>
+        </div>
+      </div>
+    </div>
+  `;
+  }).join('');
 
+  loadMoreBtn.style.display = filtered.length > visible.length ? 'block' : 'none';
+  if (loadMoreBtn.style.display === 'block') {
+    loadMoreBtn.textContent = `Load More (${filtered.length - visible.length} remaining)`;
   }
 
-
-  showToast(
-    "Compressing ZIP…",
-    true
-  );
-
-
-  try {
-
-    const blob =
-      await zip.generateAsync(
-        {
-          type:
-            "blob"
-        }
-      );
-
-
-    const url =
-      URL.createObjectURL(
-        blob
-      );
-
-
-    const anchor =
-      document.createElement(
-        "a"
-      );
-
-
-    anchor.href =
-      url;
-
-
-    anchor.download =
-      `project-photo-export-${Date.now()}.zip`;
-
-
-    document.body.appendChild(
-      anchor
-    );
-
-
-    anchor.click();
-
-    anchor.remove();
-
-
-    setTimeout(
-      () =>
-        URL.revokeObjectURL(
-          url
-        ),
-      5000
-    );
-
-
-    hideToast();
-
-
-    showToast(
-      `ZIP ready — ${completed} photo(s)`
-    );
-
-
-  } catch (
-    error
-  ) {
-
-    hideToast();
-
-
-    console.error(
-      error
-    );
-
-
-    alert(
-      "ZIP export failed. Try a smaller group."
-    );
-
+  if (lastSavedPointId !== null) {
+    const el = document.getElementById('point-' + lastSavedPointId);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    lastSavedPointId = null;
   }
-
 }
 
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
 
-/* ============================================================
-   PDF
-   ============================================================ */
+// =========================================================================
+// EXPORT — JPEG / PNG (tagged, individual files) or PDF (one combined file)
+// =========================================================================
+function sanitizeFolderName(name) {
+  return (name || 'Unlabeled').trim().replace(/[\/\\?%*:|"<>]/g, '-');
+}
 
-async function exportPdf(
-  list,
-  totalPhotos
-) {
+async function exportPoints(list, format) {
+  list = list.filter(Boolean);
+  const totalPhotos = list.reduce((sum, p) => sum + p.images.length, 0);
+  if (totalPhotos === 0) { alert('No photos to export'); return; }
 
-  if (
-    !window.jspdf
-  ) {
-
-    alert(
-      "PDF library did not load."
-    );
-
+  if (format === 'pdf') {
+    await exportAsPdf(list, totalPhotos);
     return;
-
   }
 
-
-  if (
-    !confirm(
-      `Create one PDF with ${totalPhotos} photo(s)?`
-    )
-  ) {
-
+  // A single photo can just download directly — no need to zip one file.
+  if (totalPhotos === 1) {
+    const p = list.find(pt => pt.images.length > 0);
+    if (!confirm(`Export this photo as a tagged ${format.toUpperCase()}?`)) return;
+    try {
+      const dataUrl = await getTaggedImageDataUrl(p.images[0], p, format);
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `${p.projectId}_${p.id}_1.${format === 'png' ? 'png' : 'jpg'}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Export complete');
+    } catch (err) {
+      console.error('Export failed', err);
+      alert('That photo could not be exported. Please try again.');
+    }
     return;
-
   }
 
+  // Multiple photos are bundled into a single .zip file. Mobile Safari
+  // silently blocks every download after the first one when a script
+  // triggers several downloads in a row, so looping individual downloads
+  // was only ever saving photo #1 — a single zip download sidesteps that.
+  if (!window.JSZip) {
+    alert('The zip library did not load. Check your internet connection (it only needs to load once) and try again.');
+    return;
+  }
+  if (!confirm(`Export ${totalPhotos} photo(s) as tagged ${format.toUpperCase()} files, bundled into one .zip download?`)) return;
 
-  const {
-    jsPDF
-  } =
-    window.jspdf;
-
-
-  const documentPdf =
-    new jsPDF(
-      {
-        unit:
-          "pt",
-
-        format:
-          "a4"
+  const zip = new JSZip();
+  let count = 0;
+  showToast(`Preparing export... 0/${totalPhotos}`, null, true);
+  for (const p of list) {
+    for (let i = 0; i < p.images.length; i++) {
+      try {
+        const dataUrl = await getTaggedImageDataUrl(p.images[i], p, format);
+        const base64 = dataUrl.split(',')[1];
+        const filename = `${p.projectId}_${p.id}_${i + 1}.${format === 'png' ? 'png' : 'jpg'}`;
+        const folder = sanitizeFolderName(p.projectId);
+        zip.file(`${folder}/${filename}`, base64, { base64: true });
+      } catch (err) {
+        console.error('Export failed for one photo', err);
       }
-    );
-
-
-  const pageWidth =
-    documentPdf.internal.pageSize.getWidth();
-
-
-  const pageHeight =
-    documentPdf.internal.pageSize.getHeight();
-
-
-  const margin =
-    24;
-
-
-  let count =
-    0;
-
-
-  let firstPage =
-    true;
-
-
-  for (
-    const point of list
-  ) {
-
-    for (
-      const source of point.images
-    ) {
-
-      showToast(
-        `Building PDF ${count + 1}/${totalPhotos}…`,
-        true
-      );
-
-
-      const canvas =
-        await drawTaggedCanvas(
-          source,
-          point
-        );
-
-
-      const data =
-        canvas.toDataURL(
-          "image/jpeg",
-          .8
-        );
-
-
-      const ratio =
-        Math.min(
-
-          (
-            pageWidth -
-            margin *
-              2
-          ) /
-          canvas.width,
-
-          (
-            pageHeight -
-            margin *
-              2
-          ) /
-          canvas.height
-
-        );
-
-
-      const width =
-        canvas.width *
-        ratio;
-
-
-      const height =
-        canvas.height *
-        ratio;
-
-
-      if (
-        !firstPage
-      ) {
-
-        documentPdf.addPage();
-
-      }
-
-
-      firstPage =
-        false;
-
-
-      documentPdf.addImage(
-
-        data,
-
-        "JPEG",
-
-        (
-          pageWidth -
-          width
-        ) /
-        2,
-
-        (
-          pageHeight -
-          height
-        ) /
-        2,
-
-        width,
-
-        height
-
-      );
-
-
       count++;
-
-
-      await new Promise(
-        resolve =>
-          setTimeout(
-            resolve,
-            0
-          )
-      );
-
-    }
-
-  }
-
-
-  documentPdf.save(
-    `project-photo-export-${Date.now()}.pdf`
-  );
-
-
-  hideToast();
-
-
-  showToast(
-    `PDF ready — ${count} photo(s)`
-  );
-
-}
-
-
-/* ============================================================
-   STORAGE
-   ============================================================ */
-
-async function checkStorage() {
-
-  try {
-
-    if (
-      navigator.storage?.estimate
-    ) {
-
-      const {
-        usage,
-        quota
-      } =
-        await navigator.storage.estimate();
-
-
-      const element =
-        document.getElementById(
-          "storageWarning"
-        );
-
-
-      if (
-        quota &&
-        usage /
-          quota >
-        .85
-      ) {
-
-        element.style.display =
-          "block";
-
-
-        element.textContent =
-          `Photo storage is approximately ${Math.round(usage / quota * 100)}% full. Export and delete older photos soon.`;
-
-      } else {
-
-        element.style.display =
-          "none";
-
+      if (count % 5 === 0 || count === totalPhotos) {
+        showToast(`Preparing export... ${count}/${totalPhotos}`, null, true);
+        await new Promise(r => setTimeout(r, 0)); // yield to keep UI responsive
       }
-
     }
+  }
 
-  } catch (
-    error
-  ) {}
-
+  showToast('Compressing zip file…', null, true);
+  try {
+    const blob = await zip.generateAsync({ type: 'blob' }, (metadata) => {
+      if (Math.round(metadata.percent) % 10 === 0) {
+        showToast(`Compressing zip file... ${Math.round(metadata.percent)}%`, null, true);
+      }
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `photo-tagger-export-${Date.now()}.zip`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    hideToast();
+    showToast(`Export complete — ${count} photo(s) in one .zip`);
+  } catch (err) {
+    console.error('Zip generation failed', err);
+    hideToast();
+    alert('The zip file could not be built — this can happen with very large batches on limited device memory. Try exporting a smaller batch, or use PDF format instead.');
+  }
 }
 
-
-/* ============================================================
-   PAGE PROTECTION
-   ============================================================ */
-
-window.addEventListener(
-  "beforeunload",
-  event => {
-
-    if (
-      stagedPhotos.length
-    ) {
-
-      event.preventDefault();
-
-      event.returnValue =
-        "";
-
-    }
-
-  }
-);
-
-
-/* ============================================================
-   STARTUP
-   ============================================================ */
-
-(async function init() {
-
-  if (
-    !(
-      "indexedDB" in window
-    )
-  ) {
-
-    alert(
-      "This browser does not support the required storage. Use Safari or Chrome."
-    );
-
+async function exportAsPdf(list, totalPhotos) {
+  if (!window.jspdf) {
+    alert('The PDF library did not load. Check your internet connection (it only needs to load once) and try again.');
     return;
-
   }
+  if (!confirm(`Build one PDF containing ${totalPhotos} tagged photo(s)? Large batches can take a few minutes on a phone — keep this tab open until it finishes.`)) return;
 
+  showToast(`Building PDF... 0/${totalPhotos}`, null, true);
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 24;
+
+  let count = 0;
+  let firstPage = true;
+  for (const p of list) {
+    for (let i = 0; i < p.images.length; i++) {
+      try {
+        const canvas = await drawTaggedCanvas(p.images[i], p);
+        const imgData = canvas.toDataURL('image/jpeg', 0.8);
+        const ratio = Math.min((pageW - margin * 2) / canvas.width, (pageH - margin * 2) / canvas.height);
+        const w = canvas.width * ratio;
+        const h = canvas.height * ratio;
+        if (!firstPage) doc.addPage();
+        firstPage = false;
+        doc.addImage(imgData, 'JPEG', (pageW - w) / 2, (pageH - h) / 2, w, h);
+      } catch (err) {
+        console.error('PDF page failed for one photo', err);
+      }
+      count++;
+      if (count % 5 === 0 || count === totalPhotos) {
+        showToast(`Building PDF... ${count}/${totalPhotos}`, null, true);
+        await new Promise(r => setTimeout(r, 0)); // yield to keep UI responsive
+      }
+    }
+  }
+  hideToast();
+  showToast('Saving PDF…', null, true);
+  doc.save(`photo-tagger-export-${Date.now()}.pdf`);
+  await new Promise(r => setTimeout(r, 500));
+  hideToast();
+  showToast(`PDF ready — ${count} photo(s)`);
+}
+
+async function exportAllFromDB() {
+  const format = document.getElementById('exportFormat').value;
+  await exportPoints(points, format);
+}
+
+async function deleteOne(id) {
+  if (!confirm('Delete this point and all its photos?')) return;
+  try {
+    await dbDelete(id);
+  } catch (e) {
+    console.error('Delete failed', e);
+    alert('Could not delete this point. Please try again.');
+    return;
+  }
+  points = points.filter(p => p.id !== id);
+  updatePointCount();
+  renderGallery();
+}
+
+// =========================================================================
+// STARTUP CHECKS
+// =========================================================================
+function localStorageIsWorking() {
+  try {
+    localStorage.setItem('__storage_test__', '1');
+    localStorage.removeItem('__storage_test__');
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function checkStorageEstimate() {
+  try {
+    if (navigator.storage && navigator.storage.estimate) {
+      const { usage, quota } = await navigator.storage.estimate();
+      const warningEl = document.getElementById('storageWarning');
+      if (quota && usage / quota > 0.85) {
+        warningEl.style.display = 'block';
+        warningEl.textContent = `Device storage for this app is ${Math.round((usage / quota) * 100)}% full. Export and delete some older points to free up room.`;
+      } else {
+        warningEl.style.display = 'none';
+      }
+    }
+  } catch (e) { /* not supported on this browser, ignore */ }
+}
+
+// =========================================================================
+// INIT
+// =========================================================================
+(async function init() {
+  if (!localStorageIsWorking()) {
+    alert(
+      'Your browser is blocking local storage, so nothing can be saved on this device.\n\n' +
+      'This usually happens in Private/Incognito browsing mode. Please open this app in a normal (non-private) browser tab.'
+    );
+  }
+  if (!('indexedDB' in window)) {
+    alert('Your browser does not support the storage this app needs to save photos. Please try a different browser (Safari or Chrome).');
+    return;
+  }
 
   try {
-
-    await openDB();
-
-
-    projects =
-      await getAll(
-        STORE_PROJECTS
-      );
-
-
-    workOrders =
-      await getAll(
-        STORE_WORKORDERS
-      );
-
-
-    points =
-      await getAll(
-        STORE_POINTS
-      );
-
-
-    projects.sort(
-      (
-        a,
-        b
-      ) =>
-        b.createdAt -
-        a.createdAt
-    );
-
-
-    workOrders.sort(
-      (
-        a,
-        b
-      ) =>
-        b.createdAt -
-        a.createdAt
-    );
-
-
-    points.sort(
-      (
-        a,
-        b
-      ) =>
-        b.createdAt -
-        a.createdAt
-    );
-
-
-    await loadSettings();
-
-
-    renderBrowse();
-
-
-    checkStorage();
-
-
-  } catch (
-    error
-  ) {
-
-    console.error(
-      error
-    );
-
-
-    alert(
-      "There was a problem loading the app database."
-    );
-
+    await migrateFromLocalStorageIfNeeded();
+    points = await dbGetAll();
+    points.sort((a, b) => b.id - a.id);
+  } catch (e) {
+    console.error('Failed to load saved points', e);
+    alert('There was a problem loading your saved photos. If this keeps happening, your browser storage may be corrupted.');
   }
 
+  loadDraft();
+  updatePointCount();
+  checkStorageEstimate();
+
+  const stayCheckbox = document.getElementById('stayOnCapture');
+  stayCheckbox.checked = getStayOnCapturePref();
+  stayCheckbox.addEventListener('change', () => setStayOnCapturePref(stayCheckbox.checked));
 })();
 
+// Offline support: once this loads successfully with a signal, the app
+// (including the export libraries) will keep working with zero signal from
+// then on. Requires sw.js to be uploaded alongside this file in the repo.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch((e) => {
+      console.warn('Offline caching unavailable:', e);
+    });
+  });
+}
+
+window.addEventListener('beforeunload', (e) => {
+  if (stagedImages.length > 0) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
 </script>
 
 </body>
